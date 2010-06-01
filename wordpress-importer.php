@@ -52,7 +52,7 @@ class WP_Import extends WP_Importer {
 	function header() {
 		echo '<div class="wrap">';
 		screen_icon();
-		echo '<h2>'.__('Import WordPress').'</h2>';
+		echo '<h2>'.__('Import WordPress', 'wordpress-importer').'</h2>';
 	}
 
 	function footer() {
@@ -61,8 +61,8 @@ class WP_Import extends WP_Importer {
 
 	function greet() {
 		echo '<div class="narrow">';
-		echo '<p>'.__('Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.').'</p>';
-		echo '<p>'.__('Choose a WordPress WXR file to upload, then click Upload file and import.').'</p>';
+		echo '<p>'.__('Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'wordpress-importer').'</p>';
+		echo '<p>'.__('Choose a WordPress WXR file to upload, then click Upload file and import.', 'wordpress-importer').'</p>';
 		wp_import_upload_form("admin.php?import=wordpress&amp;step=1");
 		echo '</div>';
 	}
@@ -225,11 +225,11 @@ class WP_Import extends WP_Importer {
 
 	function wp_authors_form() {
 ?>
-<h2><?php _e('Assign Authors'); ?></h2>
-<p><?php _e('To make it easier for you to edit and save the imported posts and drafts, you may want to change the name of the author of the posts. For example, you may want to import all the entries as <code>admin</code>s entries.'); ?></p>
+<h2><?php _e('Assign Authors', 'wordpress-importer'); ?></h2>
+<p><?php _e('To make it easier for you to edit and save the imported posts and drafts, you may want to change the name of the author of the posts. For example, you may want to import all the entries as <code>admin</code>s entries.', 'wordpress-importer'); ?></p>
 <?php
 	if ( $this->allow_create_users() ) {
-		echo '<p>'.__('If a new user is created by WordPress, a password will be randomly generated. Manually change the user&#8217;s details if necessary.')."</p>\n";
+		echo '<p>'.__('If a new user is created by WordPress, a password will be randomly generated. Manually change the user&#8217;s details if necessary.', 'wordpress-importer')."</p>\n";
 	}
 
 
@@ -242,7 +242,7 @@ class WP_Import extends WP_Importer {
 		$j = -1;
 		foreach ($authors as $author) {
 			++ $j;
-			echo '<li>'.__('Import author:').' <strong>'.$author.'</strong><br />';
+			echo '<li>'.__('Import author:', 'wordpress-importer').' <strong>'.$author.'</strong><br />';
 			$this->users_form($j, $author);
 			echo '</li>';
 		}
@@ -250,17 +250,17 @@ class WP_Import extends WP_Importer {
 		if ( $this->allow_fetch_attachments() ) {
 ?>
 </ol>
-<h2><?php _e('Import Attachments'); ?></h2>
+<h2><?php _e('Import Attachments', 'wordpress-importer'); ?></h2>
 <p>
 	<input type="checkbox" value="1" name="attachments" id="import-attachments" />
-	<label for="import-attachments"><?php _e('Download and import file attachments') ?></label>
+	<label for="import-attachments"><?php _e('Download and import file attachments', 'wordpress-importer') ?></label>
 </p>
 
 <?php
 		}
 
 		echo '<p class="submit">';
-		echo '<input type="submit" class="button" value="'. esc_attr__('Submit') .'" />'.'<br />';
+		echo '<input type="submit" class="button" value="'. esc_attr__('Submit', 'wordpress-importer') .'" />'.'<br />';
 		echo '</p>';
 		echo '</form>';
 
@@ -269,10 +269,10 @@ class WP_Import extends WP_Importer {
 	function users_form($n, $author) {
 
 		if ( $this->allow_create_users() ) {
-			printf('<label>'.__('Create user %1$s or map to existing'), ' <input type="text" value="'. esc_attr($author) .'" name="'.'user_create['.intval($n).']'.'" maxlength="30" /></label> <br />');
+			printf('<label>'.__('Create user %1$s or map to existing', 'wordpress-importer'), ' <input type="text" value="'. esc_attr($author) .'" name="'.'user_create['.intval($n).']'.'" maxlength="30" /></label> <br />');
 		}
 		else {
-			echo __('Map to existing').'<br />';
+			echo __('Map to existing', 'wordpress-importer').'<br />';
 		}
 
 		// keep track of $n => $author name
@@ -280,7 +280,7 @@ class WP_Import extends WP_Importer {
 
 		$users = get_users_of_blog();
 ?><select name="user_select[<?php echo $n; ?>]">
-	<option value="0"><?php _e('- Select -'); ?></option>
+	<option value="0"><?php _e('- Select -', 'wordpress-importer'); ?></option>
 	<?php
 		foreach ($users as $user) {
 			echo '<option value="'.$user->user_id.'">'.$user->user_login.'</option>';
@@ -296,8 +296,8 @@ class WP_Import extends WP_Importer {
 			$this->wp_authors_form();
 		}
 		else {
-			echo '<h2>'.__('Invalid file').'</h2>';
-			echo '<p>'.__('Please upload a valid WXR (WordPress eXtended RSS) export file.').'</p>';
+			echo '<h2>'.__('Invalid file', 'wordpress-importer').'</h2>';
+			echo '<p>'.__('Please upload a valid WXR (WordPress eXtended RSS) export file.', 'wordpress-importer').'</p>';
 		}
 	}
 
@@ -340,7 +340,7 @@ class WP_Import extends WP_Importer {
 
 			$catarr = compact('category_nicename', 'category_parent', 'posts_private', 'links_private', 'posts_private', 'cat_name', 'category_description');
 
-			print '<em>' . sprintf( __( 'Importing category <em>%s</em>&#8230;' ), esc_html($cat_name) ) . '</em><br />' . "\n";
+			print '<em>' . sprintf( __( 'Importing category <em>%s</em>&#8230;' , 'wordpress-importer'), esc_html($cat_name) ) . '</em><br />' . "\n";
 			$cat_ID = wp_insert_category($catarr);
 		}
 	}
@@ -362,7 +362,7 @@ class WP_Import extends WP_Importer {
 
 			$tagarr = compact('slug', 'description');
 
-			print '<em>' . sprintf( __( 'Importing tag <em>%s</em>&#8230;' ), esc_html($tag_name) ) . '</em><br />' . "\n";
+			print '<em>' . sprintf( __( 'Importing tag <em>%s</em>&#8230;' , 'wordpress-importer'), esc_html($tag_name) ) . '</em><br />' . "\n";
 			$tag_ID = wp_insert_term($tag_name, 'post_tag', $tagarr);
 		}
 	}
@@ -400,7 +400,7 @@ class WP_Import extends WP_Importer {
 
 			$termarr = compact('slug', 'description');
 
-			print '<em>' . sprintf( __( 'Importing <em>%s</em>&#8230;' ), esc_html($term_name) ) . '</em><br />' . "\n";
+			print '<em>' . sprintf( __( 'Importing <em>%s</em>&#8230;' , 'wordpress-importer'), esc_html($term_name) ) . '</em><br />' . "\n";
 			$term_ID = wp_insert_term($term_name, $this->get_tag( $c, 'wp:term_taxonomy' ), $termarr);
 		}
 	}
@@ -421,7 +421,7 @@ class WP_Import extends WP_Importer {
 		wp_import_cleanup($this->id);
 		do_action('import_done', 'wordpress');
 
-		echo '<h3>'.sprintf(__('All done.').' <a href="%s">'.__('Have fun!').'</a>', get_option('home')).'</h3>';
+		echo '<h3>'.sprintf(__('All done.', 'wordpress-importer').' <a href="%s">'.__('Have fun!', 'wordpress-importer').'</a>', get_option('home')).'</h3>';
 	}
 
 	function _normalize_tag( $matches ) {
@@ -485,7 +485,7 @@ class WP_Import extends WP_Importer {
 
 		if ( $post_exists ) {
 			echo '<li>';
-			printf(__('Post <em>%s</em> already exists.'), stripslashes($post_title));
+			printf(__('Post <em>%s</em> already exists.', 'wordpress-importer'), stripslashes($post_title));
 			$comment_post_ID = $post_id = $post_exists;
 		} else {
 
@@ -518,7 +518,7 @@ class WP_Import extends WP_Importer {
 					return $post_id;
 			}
 			else {
-				printf(__('Importing post <em>%s</em>...') . "\n", stripslashes($post_title));
+				printf(__('Importing post <em>%s</em>...', 'wordpress-importer') . "\n", stripslashes($post_title));
 				$comment_post_ID = $post_id = wp_insert_post($postdata);
 				if ( $post_id && $is_sticky == 1 )
 					stick_post( $post_id );
@@ -614,7 +614,7 @@ class WP_Import extends WP_Importer {
 		}
 
 		if ( $num_comments )
-			printf(' '._n('(%s comment)', '(%s comments)', $num_comments), $num_comments);
+			printf(' '._n('(%s comment)', '(%s comments)', $num_comments, 'wordpress-importer'), $num_comments);
 
 		// Now for post meta
 		preg_match_all('|<wp:postmeta>(.*?)</wp:postmeta>|is', $post, $postmeta);
@@ -642,7 +642,7 @@ class WP_Import extends WP_Importer {
 
 	function process_attachment($postdata, $remote_url) {
 		if ($this->fetch_attachments and $remote_url) {
-			printf( __('Importing attachment <em>%s</em>... '), htmlspecialchars($remote_url) );
+			printf( __('Importing attachment <em>%s</em>... ', 'wordpress-importer'), htmlspecialchars($remote_url) );
 
 			// If the URL is absolute, but does not contain http, upload it assuming the base_site_url variable
 			if ( preg_match('/^\/[\w\W]+$/', $remote_url) )
@@ -650,7 +650,7 @@ class WP_Import extends WP_Importer {
 
 			$upload = $this->fetch_remote_file($postdata, $remote_url);
 			if ( is_wp_error($upload) ) {
-				printf( __('Remote file error: %s'), htmlspecialchars($upload->get_error_message()) );
+				printf( __('Remote file error: %s', 'wordpress-importer'), htmlspecialchars($upload->get_error_message()) );
 				return $upload;
 			}
 			else {
@@ -658,7 +658,7 @@ class WP_Import extends WP_Importer {
 			}
 
 			if ( 0 == filesize( $upload['file'] ) ) {
-				print __( "Zero length file, deleting" ) . "\n";
+				print __( "Zero length file, deleting" , 'wordpress-importer') . "\n";
 				unlink( $upload['file'] );
 				return;
 			}
@@ -667,7 +667,7 @@ class WP_Import extends WP_Importer {
 				$postdata['post_mime_type'] = $info['type'];
 			}
 			else {
-				print __('Invalid file type');
+				print __('Invalid file type', 'wordpress-importer');
 				return;
 			}
 
@@ -688,7 +688,7 @@ class WP_Import extends WP_Importer {
 			return $post_id;
 		}
 		else {
-			printf( __('Skipping attachment <em>%s</em>'), htmlspecialchars($remote_url) );
+			printf( __('Skipping attachment <em>%s</em>', 'wordpress-importer'), htmlspecialchars($remote_url) );
 		}
 	}
 
@@ -713,23 +713,23 @@ class WP_Import extends WP_Importer {
 		//Request failed
 		if ( ! $headers ) {
 			@unlink($upload['file']);
-			return new WP_Error( 'import_file_error', __('Remote server did not respond') );
+			return new WP_Error( 'import_file_error', __('Remote server did not respond', 'wordpress-importer') );
 		}
 
 		// make sure the fetch was successful
 		if ( $headers['response'] != '200' ) {
 			@unlink($upload['file']);
-			return new WP_Error( 'import_file_error', sprintf(__('Remote file returned error response %1$d %2$s'), $headers['response'], get_status_header_desc($headers['response']) ) );
+			return new WP_Error( 'import_file_error', sprintf(__('Remote file returned error response %1$d %2$s', 'wordpress-importer'), $headers['response'], get_status_header_desc($headers['response']) ) );
 		}
 		elseif ( isset($headers['content-length']) && filesize($upload['file']) != $headers['content-length'] ) {
 			@unlink($upload['file']);
-			return new WP_Error( 'import_file_error', __('Remote file is incorrect size') );
+			return new WP_Error( 'import_file_error', __('Remote file is incorrect size', 'wordpress-importer') );
 		}
 
 		$max_size = $this->max_attachment_size();
 		if ( !empty($max_size) and filesize($upload['file']) > $max_size ) {
 			@unlink($upload['file']);
-			return new WP_Error( 'import_file_error', sprintf(__('Remote file is too large, limit is %s', size_format($max_size))) );
+			return new WP_Error( 'import_file_error', sprintf(__('Remote file is too large, limit is %s', size_format($max_size), 'wordpress-importer')) );
 		}
 
 		// keep track of the old and new urls so we can substitute them later
@@ -861,7 +861,7 @@ class WP_Import extends WP_Importer {
 	function handle_upload() {
 		$file = wp_import_handle_upload();
 		if ( isset($file['error']) ) {
-			echo '<p>'.__('Sorry, there has been an error.').'</p>';
+			echo '<p>'.__('Sorry, there has been an error.', 'wordpress-importer').'</p>';
 			echo '<p><strong>' . $file['error'] . '</strong></p>';
 			return false;
 		}
@@ -911,6 +911,11 @@ class WP_Import extends WP_Importer {
  */
 $wp_import = new WP_Import();
 
-register_importer('wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.'), array ($wp_import, 'dispatch'));
+register_importer('wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.', 'wordpress-importer'), array ($wp_import, 'dispatch'));
 
 } // class_exists( 'WP_Importer' )
+
+function wordpress_importer_init() {
+    load_plugin_textdomain( 'wordpress-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
+add_action( 'init', 'wordpress_importer_init' );
