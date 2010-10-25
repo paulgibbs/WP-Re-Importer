@@ -361,6 +361,11 @@ class WP_Import extends WP_Importer {
 
 	function process_posts() {
 		foreach ( $this->posts as $post ) {
+			if ( ! post_type_exists( $post['post_type'] ) ) {
+				echo __( 'Error importing post object: Invalid post type', 'wordpress-importer' ) . '<br />';
+				continue;
+			}
+
 			if ( isset( $this->processed_posts[$post['post_id']] ) )
 				continue;
 
@@ -423,6 +428,7 @@ class WP_Import extends WP_Importer {
 
 			// add categories, tags and other terms
 			if ( ! empty( $post['terms'] ) ) {
+				$terms_to_set = array();
 				foreach ( $post['terms'] as $term ) {
 					// back compat with WXR 1.0 map 'tag' to 'post_tag'
 					$taxonomy = ( 'tag' == $term['domain'] ) ? 'post_tag' : $term['domain'];
@@ -433,7 +439,7 @@ class WP_Import extends WP_Importer {
 						if ( ! is_wp_error( $t ) ) {
 							$term_id = $t['term_id'];
 						} else {
-							echo __( 'Error importing term:', 'wordpress-importer' ) . ' ' . esc_html( $id->get_error_message() ) . '<br />';
+							echo __( 'Error importing term:', 'wordpress-importer' ) . ' ' . esc_html( $t->get_error_message() ) . '<br />';
 							continue;
 						}
 					}
