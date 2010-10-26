@@ -12,6 +12,9 @@ License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 if ( ! defined( 'WP_LOAD_IMPORTERS' ) )
 	return;
 
+/** Display verbose errors */
+define( 'IMPORT_DEBUG', true );
+
 // Load Importer API
 require_once ABSPATH . 'wp-admin/includes/import.php';
 
@@ -103,21 +106,32 @@ class WP_Import extends WP_Importer {
 	}
 
 	function import_start( $file ) {
-		$import_arr = $this->parse( $file );
+		$import_data = $this->parse( $file );
 
-		if ( is_wp_error( $import_arr ) ) {
+		if ( is_wp_error( $import_data ) ) {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
-			echo '<p>' . esc_html( $import_arr->get_error_message() ) . '</p>';
+			echo '<p>' . esc_html( $import_data->get_error_message() ) . '</p>';
+			if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG ) {
+				echo '<pre>';
+				if ( 'SimpleXML_parse_error' == $import_data->get_error_code() ) {
+					foreach  ( $import_data->get_error_data() as $error )
+						echo $error->line . ':' . $error->column . ' ' . esc_html($error->message) . "\n";
+				} else if ( 'XML_parse_error' == $import_data->get_error_code() ) {
+					$error = $import_data->get_error_data();
+					echo $error[0] . ':' . $error[1] . ' ' . esc_html( $error[2] );
+				}
+				echo '</pre>';
+			}
 			$this->footer();
 			die();
 		}
 
-		$this->get_authors_from_import( $import_arr );
-		$this->posts = $import_arr['posts'];
-		$this->terms = $import_arr['terms'];
-		$this->categories = $import_arr['categories'];
-		$this->tags = $import_arr['tags'];
-		$this->base_url = esc_url( $import_arr['base_url'] );
+		$this->get_authors_from_import( $import_data );
+		$this->posts = $import_data['posts'];
+		$this->terms = $import_data['terms'];
+		$this->categories = $import_data['categories'];
+		$this->tags = $import_data['tags'];
+		$this->base_url = esc_url( $import_data['base_url'] );
 
 		wp_defer_term_counting( true );
 		wp_defer_comment_counting( true );
@@ -156,6 +170,17 @@ class WP_Import extends WP_Importer {
 		if ( is_wp_error( $import_data ) ) {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
 			echo '<p>' . esc_html( $import_data->get_error_message() ) . '</p>';
+			if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG ) {
+				echo '<pre>';
+				if ( 'SimpleXML_parse_error' == $import_data->get_error_code() ) {
+					foreach  ( $import_data->get_error_data() as $error )
+						echo $error->line . ':' . $error->column . ' ' . esc_html($error->message) . "\n";
+				} else if ( 'XML_parse_error' == $import_data->get_error_code() ) {
+					$error = $import_data->get_error_data();
+					echo $error[0] . ':' . $error[1] . ' ' . esc_html( $error[2] );
+				}
+				echo '</pre>';
+			}
 			return false;
 		}
 
@@ -172,7 +197,7 @@ class WP_Import extends WP_Importer {
 			foreach ( $import_data['posts'] as $post ) {
 				$login = sanitize_user( $post['post_author'], true );
 				if ( empty( $login ) ) {
-					_e( sprintf( 'Error importing author %s their posts will be attributed to the current user', esc_html( $post['post_author'] ) ) );
+					_e( sprintf( 'Failed to import author %s. Their posts will be attributed to the current user.', esc_html( $post['post_author'] ) ) );
 					echo '<br />';
 					continue;
 				}
@@ -222,9 +247,9 @@ class WP_Import extends WP_Importer {
 
 	function author_select( $n, $author ) {
 		if ( ! $this->authors_from_posts && $this->allow_create_users() )
-			printf( __( 'Import author %1$s or map to existing user', 'wordpress-importer' ), '<strong>' . esc_html( $author['author_display_name'] ) . '</strong>' );
+			printf( __( 'Import author %s or map to existing user', 'wordpress-importer' ), '<strong>' . esc_html( $author['author_display_name'] ) . '</strong>' );
 		else
-			printf( __( 'Map author %1$s to existing user', 'wordpress-importer' ), '<strong>' . esc_html( $author['author_display_name'] ) . '</strong>' );
+			printf( __( 'Map author %s to existing user', 'wordpress-importer' ), '<strong>' . esc_html( $author['author_display_name'] ) . '</strong>' );
 ?>
 		<input type="hidden" name="imported_authors[<?php echo $n; ?>]" value="<?php esc_attr_e( $author['author_login'] ); ?>" />
 		<?php wp_dropdown_users( array( 'name' => "user_map[$n]", 'multi' => true, 'show_option_all' => __( '- Select -', 'wordpress-importer' ) ) ); ?>
@@ -257,10 +282,14 @@ class WP_Import extends WP_Importer {
 					$user_id = wp_insert_user( $user_data );
 				}
 
-				if ( ! is_wp_error( $user_id ) )
+				if ( ! is_wp_error( $user_id ) ) {
 					$this->processed_authors[$login] = $user_id;
-				else
-					_e( sprintf( 'Error importing author %s their posts will be attributed to the current user', esc_html( $post['post_author'] ) ) );
+				} else {
+					_e( sprintf( 'Failed to import author %s. Their posts will be attributed to the current user.', esc_html( $this->authors[$login]['author_display_name'] ) ) );
+					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+						echo ' ' . $user_id->get_error_message();
+					echo '<br />';
+				}
 			}
 
 			// failsafe: if the user_id was invalid, default to the current user
@@ -295,7 +324,10 @@ class WP_Import extends WP_Importer {
 			if ( ! is_wp_error( $id ) ) {
 				$this->processed_terms[intval($cat['term_id'])] = $id;
 			} else {
-				echo __( 'Error importing category:', 'wordpress-importer' ) . ' ' . esc_html( $id->get_error_message() ) . '<br />';
+				echo sprintf( __( 'Failed to import category %s', 'wordpress-importer' ), esc_html($cat['category_nicename']) );
+				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+					echo ': ' . $id->get_error_message();
+				echo '<br />';
 				continue;
 			}
 		}
@@ -321,7 +353,10 @@ class WP_Import extends WP_Importer {
 			if ( ! is_wp_error( $id ) ) {
 				$this->processed_terms[intval($tag['term_id'])] = $id['term_id'];
 			} else {
-				echo __( 'Error importing post tag:', 'wordpress-importer' ) . ' ' . esc_html( $id->get_error_message() ) . '<br />';
+				echo sprintf( __( 'Failed to import post tag %s', 'wordpress-importer' ), esc_html($tag['tag_name']) );
+				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+					echo ': ' . $id->get_error_message();
+				echo '<br />';
 				continue;
 			}
 		}
@@ -353,7 +388,10 @@ class WP_Import extends WP_Importer {
 			if ( ! is_wp_error( $id ) ) {
 				$this->processed_terms[intval($term['term_id'])] = $id['term_id'];
 			} else {
-				echo __( 'Error importing term:', 'wordpress-importer' ) . ' ' . esc_html( $id->get_error_message() ) . '<br />';
+				echo sprintf( __( 'Failed to import %s %s', 'wordpress-importer' ), esc_html($term['term_taxonomy']), esc_html($term['term_name']) );
+				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+					echo ': ' . $id->get_error_message();
+				echo '<br />';
 				continue;
 			}
 		}
@@ -362,7 +400,8 @@ class WP_Import extends WP_Importer {
 	function process_posts() {
 		foreach ( $this->posts as $post ) {
 			if ( ! post_type_exists( $post['post_type'] ) ) {
-				echo __( 'Error importing post object: Invalid post type', 'wordpress-importer' ) . '<br />';
+				echo sprintf( __( 'Failed to import &#8220;%s&#8221;: Invalid post type %s', 'wordpress-importer' ),
+					esc_html($post['post_title']), esc_html($post['post_type']) ) . '<br />';
 				continue;
 			}
 
@@ -374,8 +413,12 @@ class WP_Import extends WP_Importer {
 				continue;
 			}
 
+			$post_type_object = get_post_type_object( $post['post_type'] );
+
 			$post_exists = post_exists( $post['post_title'], '', $post['post_date'] );
 			if ( $post_exists ) {
+				printf( __('%s &#8220;%s&#8221; already exists.', 'wordpress-importer'), $post_type_object->labels->singular_name, esc_html($post['post_title']) );
+				echo '<br />';
 				$comment_post_ID = $post_id = $post_exists;
 			} else {
 				$post_parent = (int) $post['post_parent'];
@@ -415,7 +458,11 @@ class WP_Import extends WP_Importer {
 				}
 
 				if ( is_wp_error( $post_id ) ) {
-					echo __( 'Error importing post object:', 'wordpress-importer' ) . ' ' . esc_html( $post_id->get_error_message() ) . '<br />';
+					echo sprintf( __( 'Failed to import %s &#8220;%s&#8221;', 'wordpress-importer' ),
+						$post_type_object->labels->singular_name, esc_html($post['post_title']) );
+					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+						echo ': ' . $post_id->get_error_message();
+					echo '<br />';
 					continue;
 				}
 
@@ -439,7 +486,10 @@ class WP_Import extends WP_Importer {
 						if ( ! is_wp_error( $t ) ) {
 							$term_id = $t['term_id'];
 						} else {
-							echo __( 'Error importing term:', 'wordpress-importer' ) . ' ' . esc_html( $t->get_error_message() ) . '<br />';
+							echo sprintf( __( 'Failed to import %s %s', 'wordpress-importer' ), esc_html($term['term_taxonomy']), esc_html($term['term_taxonomy']) );
+							if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+								echo ': ' . $t->get_error_message();
+							echo '<br />';
 							continue;
 						}
 					}
@@ -566,9 +616,9 @@ class WP_Import extends WP_Importer {
 	}
 
 	function process_attachment( $post, $url ) {
-		if ( ! ( $this->fetch_attachments && $url ) )
+		if ( ! $this->fetch_attachments )
 			return new WP_Error( 'attachment_processing_error',
-				__( 'Fetching attachments is not allowed or an empty URL was provided', 'wordpress-importer' ) );
+				__( 'Fetching attachments is not enabled', 'wordpress-importer' ) );
 
 		// if the URL is absolute, but does not contain address, then upload it assuming base_site_url
 		if ( preg_match( '|^/[\w\W]+$|', $url ) )
@@ -623,7 +673,7 @@ class WP_Import extends WP_Importer {
 		// make sure the fetch was successful
 		if ( $headers['response'] != '200' ) {
 			@unlink( $upload['file'] );
-			return new WP_Error( 'import_file_error', sprintf( __('Remote server returned error response %1$d %2$s', 'wordpress-importer'), $headers['response'], get_status_header_desc($headers['response']) ) );
+			return new WP_Error( 'import_file_error', sprintf( __('Remote server returned error response %1$d %2$s', 'wordpress-importer'), esc_html($headers['response']), get_status_header_desc($headers['response']) ) );
 		}
 
 		$filesize = filesize( $upload['file'] );
@@ -641,7 +691,7 @@ class WP_Import extends WP_Importer {
 		$max_size = (int) $this->max_attachment_size();
 		if ( ! empty( $max_size ) && $filesize > $max_size ) {
 			@unlink( $upload['file'] );
-			return new WP_Error( 'import_file_error', sprintf(__('Remote file is too large, limit is %s', size_format($max_size), 'wordpress-importer')) );
+			return new WP_Error( 'import_file_error', sprintf(__('Remote file is too large, limit is %s', 'wordpress-importer'), size_format($max_size) ) );
 		}
 
 		// keep track of the old and new urls so we can substitute them later

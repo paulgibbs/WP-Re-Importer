@@ -33,7 +33,7 @@ class WXR_Parser_SimpleXML {
 		$xml = simplexml_load_file( $file );
 		// halt if loading produces an error
 		if ( ! $xml )
-			return new WP_Error( 'WXR_parse_error', __( 'There was an error when reading this WXR file', 'wordpress-importer' ) );
+			return new WP_Error( 'SimpleXML_parse_error', __( 'There was an error when reading this WXR file', 'wordpress-importer' ), libxml_get_errors() );
 
 		$wxr_version = $xml->xpath('/rss/channel/wp:wxr_version');
 		if ( ! $wxr_version )
@@ -207,9 +207,11 @@ class WXR_Parser_XML {
 		xml_set_element_handler( $xml, 'tag_open', 'tag_close' );
 
 		if ( ! xml_parse( $xml, file_get_contents( $file ), true ) ) {
+			$current_line = xml_get_current_line_number( $xml );
+			$current_column = xml_get_current_column_number( $xml );		
 			$error_code = xml_get_error_code( $xml );
 			$error_string = xml_error_string( $error_code );
-			return new WP_Error( 'WXR_parse_error', 'There was an error when reading this WXR file', array( $error_code, $error_string ) );
+			return new WP_Error( 'XML_parse_error', 'There was an error when reading this WXR file', array( $current_line, $current_column, $error_string ) );
 		}
 		xml_parser_free( $xml );
 
@@ -324,6 +326,13 @@ class WXR_Parser_XML {
  * WXR Parser that uses regular expressions. Fallback for installs without an XML parser.
  */
 class WXR_Parser_Regex {
+	var $authors = array();
+	var $posts = array();
+	var $categories = array();
+	var $tags = array();
+	var $terms = array();
+	var $base_url = '';
+
 	function WXR_Parser_Regex() {
 		$this->__construct();
 	}
