@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3
+Version: 0.3-beta1
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -111,17 +111,6 @@ class WP_Import extends WP_Importer {
 		if ( is_wp_error( $import_data ) ) {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
 			echo '<p>' . esc_html( $import_data->get_error_message() ) . '</p>';
-			if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG ) {
-				echo '<pre>';
-				if ( 'SimpleXML_parse_error' == $import_data->get_error_code() ) {
-					foreach  ( $import_data->get_error_data() as $error )
-						echo $error->line . ':' . $error->column . ' ' . esc_html($error->message) . "\n";
-				} else if ( 'XML_parse_error' == $import_data->get_error_code() ) {
-					$error = $import_data->get_error_data();
-					echo $error[0] . ':' . $error[1] . ' ' . esc_html( $error[2] );
-				}
-				echo '</pre>';
-			}
 			$this->footer();
 			die();
 		}
@@ -170,17 +159,6 @@ class WP_Import extends WP_Importer {
 		if ( is_wp_error( $import_data ) ) {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
 			echo '<p>' . esc_html( $import_data->get_error_message() ) . '</p>';
-			if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG ) {
-				echo '<pre>';
-				if ( 'SimpleXML_parse_error' == $import_data->get_error_code() ) {
-					foreach  ( $import_data->get_error_data() as $error )
-						echo $error->line . ':' . $error->column . ' ' . esc_html($error->message) . "\n";
-				} else if ( 'XML_parse_error' == $import_data->get_error_code() ) {
-					$error = $import_data->get_error_data();
-					echo $error[0] . ':' . $error[1] . ' ' . esc_html( $error[2] );
-				}
-				echo '</pre>';
-			}
 			return false;
 		}
 
@@ -486,7 +464,7 @@ class WP_Import extends WP_Importer {
 						if ( ! is_wp_error( $t ) ) {
 							$term_id = $t['term_id'];
 						} else {
-							echo sprintf( __( 'Failed to import %s %s', 'wordpress-importer' ), esc_html($term['term_taxonomy']), esc_html($term['term_taxonomy']) );
+							echo sprintf( __( 'Failed to import %s %s', 'wordpress-importer' ), esc_html($taxonomy), esc_html($term['name']) );
 							if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
 								echo ': ' . $t->get_error_message();
 							echo '<br />';
@@ -540,8 +518,11 @@ class WP_Import extends WP_Importer {
 				foreach ( $post['postmeta'] as $meta ) {
 					$key = apply_filters( 'import_post_meta_key', $meta['key'] );
 					if ( $key ) {
-						update_post_meta( $post_id, $key, $meta['value'] );
-						do_action( 'import_post_meta', $post_id, $key, $meta['value'] );
+						// export gets meta straight from the DB so could have a serialized string
+						$value = maybe_unserialize( $meta['value'] );
+
+						update_post_meta( $post_id, $key, $value );
+						do_action( 'import_post_meta', $post_id, $key, $value );
 					}
 				}
 			}
@@ -549,12 +530,18 @@ class WP_Import extends WP_Importer {
 	}
 
 	function process_menu_item( $item ) {
+		// skip draft, orphaned menu items
+		if ( 'draft' == $item['status'] )
+			return;
+
 		$menu_slug = false;
-		// loop through terms, assume first nav_menu term is correct menu
-		foreach ( $item['terms'] as $term ) {
-			if ( 'nav_menu' == $term['domain'] ) {
-				$menu_slug = $term['slug'];
-				break;
+		if ( isset($item['terms']) ) {
+			// loop through terms, assume first nav_menu term is correct menu
+			foreach ( $item['terms'] as $term ) {
+				if ( 'nav_menu' == $term['domain'] ) {
+					$menu_slug = $term['slug'];
+					break;
+				}
 			}
 		}
 
@@ -593,6 +580,11 @@ class WP_Import extends WP_Importer {
 			$this->menu_item_orphans[intval($item['post_id'])] = (int) $_menu_item_menu_item_parent;
 			$_menu_item_menu_item_parent = 0;
 		}
+
+		// wp_update_nav_menu_item expects CSS classes as a space separated string
+		$_menu_item_classes = maybe_unserialize( $_menu_item_classes );
+		if ( is_array( $_menu_item_classes ) )
+			$_menu_item_classes = implode( ' ', $_menu_item_classes );
 
 		$args = array(
 			'menu-item-object-id' => $_menu_item_object_id,
