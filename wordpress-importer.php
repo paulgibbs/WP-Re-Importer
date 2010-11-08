@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3-beta1
+Version: 0.3-beta2
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -52,12 +52,16 @@ class WP_Import extends WP_Importer {
 	var $menu_item_orphans = array();
 	var $missing_menu_items = array();
 
-	var $authors_from_posts = false;
 	var $fetch_attachments = false;
 	var $url_remap = array();
 
 	function WP_Import() { /* nothing */ }
 
+	/**
+	 * Registered callback function for the WordPress Importer
+	 *
+	 * Manages the three separate stages of the WXR import process
+	 */
 	function dispatch() {
 		$this->header();
 
@@ -83,6 +87,11 @@ class WP_Import extends WP_Importer {
 		$this->footer();
 	}
 
+	/**
+	 * The main controller for the actual import stage.
+	 *
+	 * @param string $file Path to the WXR file for importing
+	 */
 	function import( $file ) {
 		add_filter( 'import_post_meta_key', array( $this, 'is_valid_meta_key' ) );
 
@@ -105,12 +114,24 @@ class WP_Import extends WP_Importer {
 		$this->import_end();
 	}
 
+	/**
+	 * Parses the WXR file and prepares us for the task of processing parsed data
+	 *
+	 * @param string $file Path to the WXR file for importing
+	 */
 	function import_start( $file ) {
+		if ( ! is_file($file) ) {
+			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong><br />';
+			echo __( 'The file does not exist, please try again.', 'wordpress-importer' ) . '</p>';
+			$this->footer();
+			die();
+		}
+
 		$import_data = $this->parse( $file );
 
 		if ( is_wp_error( $import_data ) ) {
-			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
-			echo '<p>' . esc_html( $import_data->get_error_message() ) . '</p>';
+			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong><br />';
+			echo esc_html( $import_data->get_error_message() ) . '</p>';
 			$this->footer();
 			die();
 		}
@@ -128,6 +149,9 @@ class WP_Import extends WP_Importer {
 		do_action( 'import_start' );
 	}
 
+	/**
+	 * Performs post-import cleanup of files and the cache
+	 */
 	function import_end() {
 		wp_import_cleanup( $this->id );
 
@@ -145,20 +169,26 @@ class WP_Import extends WP_Importer {
 		do_action( 'import_end' );
 	}
 
+	/**
+	 * Handles the WXR upload and initial parsing of the file to prepare for
+	 * displaying author import options
+	 *
+	 * @return bool False if error uploading or invalid file, true otherwise
+	 */
 	function handle_upload() {
 		$file = wp_import_handle_upload();
 
 		if ( isset( $file['error'] ) ) {
-			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
-			echo '<p>' . esc_html( $file['error'] ) . '</p>';
+			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong><br />';
+			echo esc_html( $file['error'] ) . '</p>';
 			return false;
 		}
 
 		$this->id = (int) $file['id'];
 		$import_data = $this->parse( $file['file'] );
 		if ( is_wp_error( $import_data ) ) {
-			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong></p>';
-			echo '<p>' . esc_html( $import_data->get_error_message() ) . '</p>';
+			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong><br />';
+			echo esc_html( $import_data->get_error_message() ) . '</p>';
 			return false;
 		}
 
@@ -167,6 +197,14 @@ class WP_Import extends WP_Importer {
 		return true;
 	}
 
+	/**
+	 * Retrieve authors from parsed WXR data
+	 *
+	 * Uses the provided author information from WXR 1.1 files
+	 * or extracts info from each post for WXR 1.0 files
+	 *
+	 * @param array $import_data Data returned by a WXR parser
+	 */
 	function get_authors_from_import( $import_data ) {
 		if ( ! empty( $import_data['authors'] ) ) {
 			$this->authors = $import_data['authors'];
@@ -186,10 +224,13 @@ class WP_Import extends WP_Importer {
 						'author_display_name' => $post['post_author']
 					);
 			}
-			$this->authors_from_posts = true;
 		}
 	}
 
+	/**
+	 * Display pre-import options, author importing/mapping and option to
+	 * fetch attachments
+	 */
 	function import_options() {
 		$j = 0;
 ?>
@@ -200,7 +241,7 @@ class WP_Import extends WP_Importer {
 <?php if ( ! empty( $this->authors ) ) : ?>
 	<h3><?php _e('Assign Authors', 'wordpress-importer'); ?></h3>
 	<p><?php _e( 'To make it easier for you to edit and save the imported content, you may want to reassign the author of the imported item to an existing user of this site. For example, you may want to import all the entries as <code>admin</code>s entries.', 'wordpress-importer' ); ?></p>
-<?php if ( ! $this->authors_from_posts && $this->allow_create_users() ) : ?>
+<?php if ( $this->allow_create_users() ) : ?>
 	<p><?php printf( __( 'If a new user is created by WordPress, a new password will be randomly generated and the new user&#8217;s role will be set as %s. Manually changing the new user&#8217;s details will be necessary.', 'wordpress-importer' ), esc_html( get_option('default_role') ) ); ?></p>
 <?php endif; ?>
 	<ol id="authors">
@@ -223,47 +264,60 @@ class WP_Import extends WP_Importer {
 <?php
 	}
 
+	/**
+	 * Display import options for an individual author. That is, either create
+	 * a new user based on import info or map to an existing user
+	 *
+	 * @param int $n Index for each author in the form
+	 * @param array $author Author information, e.g. login, display name, email
+	 */
 	function author_select( $n, $author ) {
-		if ( ! $this->authors_from_posts && $this->allow_create_users() )
-			printf( __( 'Import author %s or map to existing user', 'wordpress-importer' ), '<strong>' . esc_html( $author['author_display_name'] ) . '</strong>' );
-		else
-			printf( __( 'Map author %s to existing user', 'wordpress-importer' ), '<strong>' . esc_html( $author['author_display_name'] ) . '</strong>' );
-?>
-		<input type="hidden" name="imported_authors[<?php echo $n; ?>]" value="<?php esc_attr_e( $author['author_login'] ); ?>" />
-		<?php wp_dropdown_users( array( 'name' => "user_map[$n]", 'multi' => true, 'show_option_all' => __( '- Select -', 'wordpress-importer' ) ) ); ?>
-<?php
+		_e( 'Import author:', 'wordpress-importer' );
+		echo ' <strong>' . esc_html( $author['author_display_name'] . ' (' . esc_html( $author['author_login'] ) . ')' ) . '</strong><br />';
+
+		if ( $this->allow_create_users() ) {
+			_e( 'Create new user with login name', 'wordpress-importer' );
+			echo ' <input type="text" name="user_new['.$n.']" value="'. esc_attr( sanitize_user( $author['author_login'], true ) ) .'" /><br />';
+		}
+
+		_e( 'Map to existing user', 'wordpress-importer' );
+		wp_dropdown_users( array( 'name' => "user_map[$n]", 'multi' => true, 'show_option_all' => __( '- Select -', 'wordpress-importer' ) ) );
+		echo '<input type="hidden" name="imported_authors['.$n.']" value="' . esc_attr( $author['author_login'] ) . '" />';
 	}
 
+	/**
+	 * Map old author logins to local user IDs based on decisions made
+	 * in import options form. Can map to an existing user, create a new user
+	 * or falls back to the current user in case of error with either of the previous
+	 */
 	function get_author_mapping() {
 		if ( ! isset( $_POST['imported_authors'] ) )
 			return;
 
-		foreach ( (array) $_POST['imported_authors'] as $i => $login ) {
-			$bad_login = $login;
-			$login = sanitize_user( $login, true );
-
+		foreach ( (array) $_POST['imported_authors'] as $i => $old_login ) {
 			if ( ! empty( $_POST['user_map'][$i] ) ) {
 				$user = get_userdata( intval($_POST['user_map'][$i]) );
 				if ( isset( $user->ID ) )
-					$this->processed_authors[$login] = $user->ID;
-			} else if ( ! $this->authors_from_posts && $this->allow_create_users() ) {
+					$this->processed_authors[$old_login] = $user->ID;
+			} else if ( $this->allow_create_users() && ! empty($_POST['user_new'][$i]) ) {
+				$login = sanitize_user( $_POST['user_new'][$i], true );
 				$user_id = username_exists( $login );
 				if ( ! $user_id ) {
 					$user_data = array(
 						'user_login' => $login,
 						'user_pass' => wp_generate_password(),
-						'user_email' => $this->authors[$login]['author_email'],
-						'display_name' => $this->authors[$login]['author_display_name'],
-						'first_name' => $this->authors[$login]['author_first_name'],
-						'last_name' => $this->authors[$login]['author_last_name'],
+						'user_email' => isset( $this->authors[$old_login]['author_email'] ) ? $this->authors[$old_login]['author_email'] : '',
+						'display_name' => $this->authors[$old_login]['author_display_name'],
+						'first_name' => isset( $this->authors[$old_login]['author_first_name'] ) ? $this->authors[$old_login]['author_first_name'] : '',
+						'last_name' => isset( $this->authors[$old_login]['author_last_name'] ) ? $this->authors[$old_login]['author_last_name'] : '',
 					);
 					$user_id = wp_insert_user( $user_data );
 				}
 
 				if ( ! is_wp_error( $user_id ) ) {
-					$this->processed_authors[$login] = $user_id;
+					$this->processed_authors[$old_login] = $user_id;
 				} else {
-					_e( sprintf( 'Failed to import author %s. Their posts will be attributed to the current user.', esc_html( $this->authors[$login]['author_display_name'] ) ) );
+					_e( sprintf( 'Failed to create new user for %s. Their posts will be attributed to the current user.', esc_html( $this->authors[$old_login]['author_display_name'] ) ) );
 					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
 						echo ' ' . $user_id->get_error_message();
 					echo '<br />';
@@ -271,11 +325,16 @@ class WP_Import extends WP_Importer {
 			}
 
 			// failsafe: if the user_id was invalid, default to the current user
-			if ( empty( $this->processed_authors[$login] ) )
-				$this->processed_authors[$login] = (int) get_current_user_id();
+			if ( empty( $this->processed_authors[$old_login] ) )
+				$this->processed_authors[$old_login] = (int) get_current_user_id();
 		}
 	}
 
+	/**
+	 * Create new categories based on import information
+	 *
+	 * Doesn't create a new category if its slug already exists
+	 */
 	function process_categories() {
 		if ( empty( $this->categories ) )
 			return;
@@ -311,6 +370,11 @@ class WP_Import extends WP_Importer {
 		}
 	}
 
+	/**
+	 * Create new post tags based on import information
+	 *
+	 * Doesn't create a tag if its slug already exists
+	 */
 	function process_tags() {
 		if ( empty( $this->tags ) )
 			return;
@@ -340,6 +404,11 @@ class WP_Import extends WP_Importer {
 		}
 	}
 
+	/**
+	 * Create new terms based on import information
+	 *
+	 * Doesn't create a term its slug already exists
+	 */
 	function process_terms() {
 		if ( empty( $this->terms ) )
 			return;
@@ -375,6 +444,14 @@ class WP_Import extends WP_Importer {
 		}
 	}
 
+	/**
+	 * Create new posts based on import information
+	 *
+	 * Posts marked as having a parent which doesn't exist will become top level items.
+	 * Doesn't create a new post if: the post type doesn't exist, the given post ID
+	 * is already noted as imported or a post with the same title and date already exists.
+	 * Note that new/updated terms, comments and meta are imported for the last of the above.
+	 */
 	function process_posts() {
 		foreach ( $this->posts as $post ) {
 			if ( ! post_type_exists( $post['post_type'] ) ) {
@@ -529,6 +606,16 @@ class WP_Import extends WP_Importer {
 		}
 	}
 
+	/**
+	 * Attempt to create a new menu item from import data
+	 *
+	 * Fails for draft, orphaned menu items and those without an associated nav_menu
+	 * or an invalid nav_menu term. If the post type or term object which the menu item
+	 * represents doesn't exist then the menu item will not be imported (waits until the
+	 * end of the import to retry again before discarding).
+	 *
+	 * @param array $item Menu item details from WXR file
+	 */
 	function process_menu_item( $item ) {
 		// skip draft, orphaned menu items
 		if ( 'draft' == $item['status'] )
@@ -607,6 +694,13 @@ class WP_Import extends WP_Importer {
 			$this->processed_menu_items[intval($item['post_id'])] = (int) $id;
 	}
 
+	/**
+	 * If fetching attachments is enabled then attempt to create a new attachment
+	 *
+	 * @param array $post Attachment post details from WXR
+	 * @param string $url URL to fetch attachment from
+	 * @return int|WP_Error Post ID on success, WP_Error otherwise
+	 */
 	function process_attachment( $post, $url ) {
 		if ( ! $this->fetch_attachments )
 			return new WP_Error( 'attachment_processing_error',
@@ -642,6 +736,13 @@ class WP_Import extends WP_Importer {
 		return $post_id;
 	}
 
+	/**
+	 * Attempt to download a remote file attachment
+	 *
+	 * @param string $url URL of item to fetch
+	 * @param array $post Attachment details
+	 * @return array|WP_Error Local file location details on success, WP_Error otherwise
+	 */
 	function fetch_remote_file( $url, $post ) {
 		add_filter( 'http_request_timeout', array( &$this, 'bump_request_timeout' ) );
 
@@ -696,6 +797,13 @@ class WP_Import extends WP_Importer {
 		return $upload;
 	}
 
+	/**
+	 * Attempt to associate posts and menu items with previously missing parents
+	 *
+	 * An imported post's parent may not have been imported when it was first created
+	 * so try again. Similarly for child menu items and menu items which were missing
+	 * the object (e.g. post) they represent in the menu
+	 */
 	function backfill_parents() {
 		global $wpdb;
 
@@ -729,6 +837,9 @@ class WP_Import extends WP_Importer {
 		}
 	}
 
+	/**
+	 * Use stored mapping information to update old attachment URLs
+	 */
 	function backfill_attachment_urls() {
 		global $wpdb;
 
@@ -743,21 +854,32 @@ class WP_Import extends WP_Importer {
 		}
 	}
 
+	/**
+	 * Parse a WXR file
+	 *
+	 * @param string $file Path to WXR file for parsing
+	 * @return array Information gathered from the WXR file
+	 */
 	function parse( $file ) {
 		$parser = new WXR_Parser();
 		return $parser->parse( $file );
 	}
 
+	// Display import page title
 	function header() {
 		echo '<div class="wrap">';
 		screen_icon();
 		echo '<h2>' . __( 'Import WordPress', 'wordpress-importer' ) . '</h2>';
 	}
 
+	// Close div.wrap
 	function footer() {
 		echo '</div>';
 	}
 
+	/**
+	 * Display introductory text and file upload form
+	 */
 	function greet() {
 		echo '<div class="narrow">';
 		echo '<p>'.__( 'Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'wordpress-importer' ).'</p>';
@@ -766,6 +888,12 @@ class WP_Import extends WP_Importer {
 		echo '</div>';
 	}
 
+	/**
+	 * Decide if the given meta key maps to information we will want to import
+	 *
+	 * @param string $key The meta key to check
+	 * @return bool True for keys we do want to save, false if not
+	 */
 	function is_valid_meta_key( $key ) {
 		// skip attachment metadata since we'll regenerate it from scratch
 		// skip _edit_lock and _edit_last as not useful
@@ -774,39 +902,57 @@ class WP_Import extends WP_Importer {
 		return $key;
 	}
 
-	// give the user the option of creating new users to represent authors in the import file?
+	/**
+	 * Decide whether or not the importer is allowed to create users.
+	 * Default is true, can be filtered via import_allow_create_users
+	 *
+	 * @return bool True if creating users is allowed
+	 */
 	function allow_create_users() {
 		return apply_filters( 'import_allow_create_users', true );
 	}
 
-	// give the user the option of downloading and importing attached files
+	/**
+	 * Decide whether or not the importer should attempt to download attachment files.
+	 * Default is true, can be filtered via import_allow_fetch_attachments. The choice
+	 * made at the import options screen must also be true, false here hides that checkbox.
+	 *
+	 * @return bool True if downloading attachments is allowed
+	 */
 	function allow_fetch_attachments() {
 		return apply_filters( 'import_allow_fetch_attachments', true );
 	}
 
-	function bump_request_timeout() {
-		return 60;
-	}
-
+	/**
+	 * Decide what the maximum file size for downloaded attachments is.
+	 * Default is 0 (unlimited), can be filtered via import_attachment_size_limit
+	 *
+	 * @return int Maximum attachment file size to import
+	 */
 	function max_attachment_size() {
 		return apply_filters( 'import_attachment_size_limit', 0 );
 	}
 
+	/**
+	 * Added to http_request_timeout filter to force timeout at 60 seconds during import
+	 * @return int 60
+	 */
+	function bump_request_timeout() {
+		return 60;
+	}
+
+	// return the difference in length between two strings
 	function cmpr_strlen( $a, $b ) {
 		return strlen($b) - strlen($a);
 	}
 }
 
 /**
- * Register WordPress Importer
- *
- * @since unknown
- * @var WP_Import
- * @name $wp_import
+ * WordPress Importer object for registering the import callback
+ * @global WP_Import $wp_import
  */
 $wp_import = new WP_Import();
-
-register_importer('wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.', 'wordpress-importer'), array ($wp_import, 'dispatch'));
+register_importer( 'wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.', 'wordpress-importer'), array( $wp_import, 'dispatch' ) );
 
 } // class_exists( 'WP_Importer' )
 
