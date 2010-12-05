@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3-beta2
+Version: 0.3-beta3
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -35,8 +35,9 @@ require dirname( __FILE__ ) . '/parsers.php';
  */
 if ( class_exists( 'WP_Importer' ) ) {
 class WP_Import extends WP_Importer {
-	var $id;
+	var $id; // WXR attachment ID
 
+	// information to import from WXR file
 	var $authors = array();
 	var $posts = array();
 	var $terms = array();
@@ -44,7 +45,9 @@ class WP_Import extends WP_Importer {
 	var $tags = array();
 	var $base_url = '';
 
+	// mappings from old information to new
 	var $processed_authors = array();
+	var $author_mapping = array();
 	var $processed_terms = array();
 	var $processed_posts = array();
 	var $post_orphans = array();
@@ -295,10 +298,15 @@ class WP_Import extends WP_Importer {
 			return;
 
 		foreach ( (array) $_POST['imported_authors'] as $i => $old_login ) {
+			$old_id = isset( $this->authors[$old_login]['author_id'] ) ? $this->authors[$old_login]['author_id'] : false;
+
 			if ( ! empty( $_POST['user_map'][$i] ) ) {
 				$user = get_userdata( intval($_POST['user_map'][$i]) );
-				if ( isset( $user->ID ) )
-					$this->processed_authors[$old_login] = $user->ID;
+				if ( isset( $user->ID ) ) {
+					if ( $old_id )
+						$this->processed_authors[$old_id] = $user->ID;
+					$this->author_mapping[$old_login] = $user->ID;
+				}
 			} else if ( $this->allow_create_users() && ! empty($_POST['user_new'][$i]) ) {
 				$login = sanitize_user( $_POST['user_new'][$i], true );
 				$user_id = username_exists( $login );
@@ -315,7 +323,9 @@ class WP_Import extends WP_Importer {
 				}
 
 				if ( ! is_wp_error( $user_id ) ) {
-					$this->processed_authors[$old_login] = $user_id;
+					if ( $old_id )
+						$this->processed_authors[$old_id] = $user_id;
+					$this->author_mapping[$old_login] = $user_id;
 				} else {
 					_e( sprintf( 'Failed to create new user for %s. Their posts will be attributed to the current user.', esc_html( $this->authors[$old_login]['author_display_name'] ) ) );
 					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
@@ -325,8 +335,11 @@ class WP_Import extends WP_Importer {
 			}
 
 			// failsafe: if the user_id was invalid, default to the current user
-			if ( empty( $this->processed_authors[$old_login] ) )
-				$this->processed_authors[$old_login] = (int) get_current_user_id();
+			if ( ! isset( $this->author_mapping[$old_login] ) ) {
+				if ( $old_id )
+					$this->processed_authors[$old_id] = (int) get_current_user_id();
+				$this->author_mapping[$old_login] = (int) get_current_user_id();
+			}
 		}
 	}
 
@@ -490,8 +503,8 @@ class WP_Import extends WP_Importer {
 
 				// map the post author
 				$author = sanitize_user( $post['post_author'], true );
-				if ( isset( $this->processed_authors[$author] ) )
-					$author = $this->processed_authors[$author];
+				if ( isset( $this->author_mapping[$author] ) )
+					$author = $this->author_mapping[$author];
 				else
 					$author = (int) get_current_user_id();
 
@@ -594,9 +607,19 @@ class WP_Import extends WP_Importer {
 			if ( isset( $post['postmeta'] ) ) {
 				foreach ( $post['postmeta'] as $meta ) {
 					$key = apply_filters( 'import_post_meta_key', $meta['key'] );
+					$value = false;
+
+					if ( '_edit_last' == $key ) {
+						if ( isset( $this->processed_authors[intval($meta['value'])] ) )
+							$value = $this->processed_authors[intval($meta['value'])];
+						else
+							$key = false;
+					}
+
 					if ( $key ) {
 						// export gets meta straight from the DB so could have a serialized string
-						$value = maybe_unserialize( $meta['value'] );
+						if ( ! $value )
+							$value = maybe_unserialize( $meta['value'] );
 
 						update_post_meta( $post_id, $key, $value );
 						do_action( 'import_post_meta', $post_id, $key, $value );
@@ -892,12 +915,12 @@ class WP_Import extends WP_Importer {
 	 * Decide if the given meta key maps to information we will want to import
 	 *
 	 * @param string $key The meta key to check
-	 * @return bool True for keys we do want to save, false if not
+	 * @return string|bool The key if we do want to import, false if not
 	 */
 	function is_valid_meta_key( $key ) {
 		// skip attachment metadata since we'll regenerate it from scratch
-		// skip _edit_lock and _edit_last as not useful
-		if ( in_array( $key, array( '_wp_attached_file', '_wp_attachment_metadata', '_edit_lock', '_edit_last' ) ) )
+		// skip _edit_lock as not relevant for import
+		if ( in_array( $key, array( '_wp_attached_file', '_wp_attachment_metadata', '_edit_lock' ) ) )
 			return false;
 		return $key;
 	}

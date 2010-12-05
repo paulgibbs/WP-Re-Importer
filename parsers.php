@@ -85,6 +85,7 @@ class WXR_Parser_SimpleXML {
 			$a = $author_arr->children( $namespaces['wp'] );
 			$login = (string) $a->author_login;
 			$authors[$login] = array(
+				'author_id' => (int) $a->author_id,
 				'author_login' => $login,
 				'author_email' => (string) $a->author_email,
 				'author_display_name' => (string) $a->author_display_name,
@@ -213,7 +214,7 @@ class WXR_Parser_XML {
 		'wp:status', 'wp:post_name', 'wp:post_parent', 'wp:menu_order', 'wp:post_type', 'wp:post_password',
 		'wp:is_sticky', 'wp:term_id', 'wp:category_nicename', 'wp:category_parent', 'wp:cat_name', 'wp:category_description',
 		'wp:tag_slug', 'wp:tag_name', 'wp:tag_description', 'wp:term_taxonomy', 'wp:term_parent',
-		'wp:term_name', 'wp:term_description', 'wp:author_login', 'wp:author_email', 'wp:author_display_name',
+		'wp:term_name', 'wp:term_description', 'wp:author_id', 'wp:author_login', 'wp:author_email', 'wp:author_display_name',
 		'wp:author_first_name', 'wp:author_last_name',
 	);
 	var $wp_sub_tags = array(
@@ -480,6 +481,7 @@ class WXR_Parser_Regex {
 
 	function process_author( $a ) {
 		return array(
+			'author_id' => $this->get_tag( $a, 'wp:author_id' ),
 			'author_login' => $this->get_tag( $a, 'wp:author_login' ),
 			'author_email' => $this->get_tag( $a, 'wp:author_email' ),
 			'author_display_name' => $this->get_tag( $a, 'wp:author_display_name' ),
