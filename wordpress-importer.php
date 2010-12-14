@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3-beta3
+Version: 0.3-beta4
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -83,6 +83,7 @@ class WP_Import extends WP_Importer {
 				$this->fetch_attachments = ( ! empty( $_POST['fetch_attachments'] ) && $this->allow_fetch_attachments() );
 				$this->id = (int) $_POST['import_id'];
 				$file = get_attached_file( $this->id );
+				set_time_limit(0);
 				$this->import( $file );
 				break;
 		}
@@ -167,7 +168,8 @@ class WP_Import extends WP_Importer {
 		wp_defer_term_counting( false );
 		wp_defer_comment_counting( false );
 
-		echo '<p>' . __( 'All done.' ) . ' <a href="' . admin_url() . '">' . __( 'Have fun!' ) . '</a>' . '</p>';
+		echo '<p>' . __( 'All done.', 'wordpress-importer' ) . ' <a href="' . admin_url() . '">' . __( 'Have fun!', 'wordpress-importer' ) . '</a>' . '</p>';
+		echo '<p>' . __( 'Remember to update the passwords and roles of imported users.', 'wordpress-importer' ) . '</p>';
 
 		do_action( 'import_end' );
 	}
@@ -298,7 +300,7 @@ class WP_Import extends WP_Importer {
 			return;
 
 		foreach ( (array) $_POST['imported_authors'] as $i => $old_login ) {
-			$old_id = isset( $this->authors[$old_login]['author_id'] ) ? $this->authors[$old_login]['author_id'] : false;
+			$old_id = isset( $this->authors[$old_login]['author_id'] ) ? intval($this->authors[$old_login]['author_id']) : false;
 
 			if ( ! empty( $_POST['user_map'][$i] ) ) {
 				$user = get_userdata( intval($_POST['user_map'][$i]) );
@@ -381,6 +383,8 @@ class WP_Import extends WP_Importer {
 				continue;
 			}
 		}
+
+		unset( $this->categories );
 	}
 
 	/**
@@ -415,6 +419,8 @@ class WP_Import extends WP_Importer {
 				continue;
 			}
 		}
+
+		unset( $this->tags );
 	}
 
 	/**
@@ -455,6 +461,8 @@ class WP_Import extends WP_Importer {
 				continue;
 			}
 		}
+
+		unset( $this->terms );
 	}
 
 	/**
@@ -627,6 +635,8 @@ class WP_Import extends WP_Importer {
 				}
 			}
 		}
+
+		unset( $this->posts );
 	}
 
 	/**
