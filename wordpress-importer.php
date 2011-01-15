@@ -6,7 +6,7 @@ Description: Import posts, pages, comments, custom fields, categories, tags and 
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.3-beta4
-License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
 if ( ! defined( 'WP_LOAD_IMPORTERS' ) )
