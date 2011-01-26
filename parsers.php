@@ -68,7 +68,7 @@ class WXR_Parser_SimpleXML {
 
 		$wxr_version = (string) trim( $wxr_version[0] );
 		// confirm that we are dealing with the correct file format
-		if ( ! preg_match( '/^\d\.\d$/', $wxr_version ) )
+		if ( ! preg_match( '/^\d+\.\d+$/', $wxr_version ) )
 			return new WP_Error( 'WXR_parse_error', __( 'This does not appear to be a WXR file, missing/invalid WXR version number', 'wordpress-importer' ) );
 
 		$base_url = $xml->xpath('/rss/channel/wp:base_site_url');
@@ -333,7 +333,7 @@ class WXR_Parser_XML {
 				$this->base_url = $this->cdata;
 				break;
 			case 'wp:wxr_version':
-				$this->is_wxr_file = preg_match( '/\d+\.\d+/', $this->cdata );
+				$this->is_wxr_file = preg_match( '/^\d+\.\d+$/', $this->cdata );
 				break;
 
 			default:
