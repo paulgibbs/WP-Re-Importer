@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3-beta6
+Version: 0.3-beta7
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -57,6 +57,7 @@ class WP_Import extends WP_Importer {
 
 	var $fetch_attachments = false;
 	var $url_remap = array();
+	var $featured_images = array();
 
 	function WP_Import() { /* nothing */ }
 
@@ -110,10 +111,10 @@ class WP_Import extends WP_Importer {
 		$this->process_posts();
 		wp_suspend_cache_invalidation( false );
 
-		// update items with missing/incorrect parent IDs
+		// update incorrect/missing information in the DB
 		$this->backfill_parents();
-		// update attachment references within posts and postmeta
 		$this->backfill_attachment_urls();
+		$this->remap_featured_images();
 
 		$this->import_end();
 	}
@@ -635,6 +636,10 @@ class WP_Import extends WP_Importer {
 
 						update_post_meta( $post_id, $key, $value );
 						do_action( 'import_post_meta', $post_id, $key, $value );
+
+						// if the post has a featured image, take note of this in case of remap
+						if ( '_thumbnail_id' == $key )
+							$this->featured_images[$post_id] = (int) $value;
 					}
 				}
 			}
@@ -879,7 +884,6 @@ class WP_Import extends WP_Importer {
 	 */
 	function backfill_attachment_urls() {
 		global $wpdb;
-
 		// make sure we do the longest urls first, in case one is a substring of another
 		uksort( $this->url_remap, array(&$this, 'cmpr_strlen') );
 
@@ -888,6 +892,21 @@ class WP_Import extends WP_Importer {
 			$wpdb->query( $wpdb->prepare("UPDATE {$wpdb->posts} SET post_content = REPLACE(post_content, %s, %s)", $from_url, $to_url) );
 			// remap enclosure urls
 			$result = $wpdb->query( $wpdb->prepare("UPDATE {$wpdb->postmeta} SET meta_value = REPLACE(meta_value, %s, %s) WHERE meta_key='enclosure'", $from_url, $to_url) );
+		}
+	}
+
+	/**
+	 * Update _thumbnail_id meta to new, imported attachment IDs
+	 */
+	function remap_featured_images() {
+		// cycle through posts that have a featured image
+		foreach ( $this->featured_images as $post_id => $value ) {
+			if ( isset( $this->processed_posts[$value] ) ) {
+				$new_id = $this->processed_posts[$value];
+				// only update if there's a difference
+				if ( $new_id != $value )
+					update_post_meta( $post_id, '_thumbnail_id', $new_id );
+			}
 		}
 	}
 
