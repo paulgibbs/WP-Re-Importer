@@ -485,6 +485,9 @@ class WP_Import extends WP_Importer {
 			if ( isset( $this->processed_posts[$post['post_id']] ) )
 				continue;
 
+			if ( $post['status'] == 'auto-draft' )
+				continue;
+
 			if ( 'nav_menu_item' == $post['post_type'] ) {
 				$this->process_menu_item( $post );
 				continue;
