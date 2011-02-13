@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3-beta7
+Version: 0.3-beta8
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -35,6 +35,8 @@ require dirname( __FILE__ ) . '/parsers.php';
  */
 if ( class_exists( 'WP_Importer' ) ) {
 class WP_Import extends WP_Importer {
+	var $max_wxr_version = 1.1; // max. supported WXR version
+
 	var $id; // WXR attachment ID
 
 	// information to import from WXR file
@@ -196,6 +198,12 @@ class WP_Import extends WP_Importer {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong><br />';
 			echo esc_html( $import_data->get_error_message() ) . '</p>';
 			return false;
+		}
+
+		if ( $import_data['version'] > $this->max_wxr_version ) {
+			echo '<div class="error"><p><strong>';
+			printf( __( 'This WXR file (version %s) may not be supported by this version of the importer. Please consider updating.', 'wordpress-importer' ), esc_html($import_data['version']) );
+			echo '</strong></p></div>';
 		}
 
 		$this->get_authors_from_import( $import_data );
@@ -926,6 +934,15 @@ class WP_Import extends WP_Importer {
 		echo '<div class="wrap">';
 		screen_icon();
 		echo '<h2>' . __( 'Import WordPress', 'wordpress-importer' ) . '</h2>';
+
+		$updates = get_plugin_updates();
+		$basename = plugin_basename(__FILE__);
+		if ( isset( $updates[$basename] ) ) {
+			$update = $updates[$basename];
+			echo '<div class="error"><p><strong>';
+			printf( __( 'A new version of this importer is available. Please update to version %s to ensure compatibility with newer export files.', 'wordpress-importer' ), $update->update->new_version );
+			echo '</strong></p></div>';
+		}
 	}
 
 	// Close div.wrap

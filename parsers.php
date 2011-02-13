@@ -200,7 +200,8 @@ class WXR_Parser_SimpleXML {
 			'categories' => $categories,
 			'tags' => $tags,
 			'terms' => $terms,
-			'base_url' => $base_url
+			'base_url' => $base_url,
+			'version' => $wxr_version
 		);
 	}
 }
@@ -224,7 +225,7 @@ class WXR_Parser_XML {
 	);
 
 	function parse( $file ) {
-		$this->is_wxr_file = $this->in_post = $this->cdata = $this->data = $this->sub_data = $this->in_tag = $this->in_sub_tag = false;
+		$this->wxr_version = $this->in_post = $this->cdata = $this->data = $this->sub_data = $this->in_tag = $this->in_sub_tag = false;
 		$this->authors = $this->posts = $this->term = $this->category = $this->tag = array();
 
 		$xml = xml_parser_create( 'UTF-8' );
@@ -243,7 +244,7 @@ class WXR_Parser_XML {
 		}
 		xml_parser_free( $xml );
 
-		if ( ! $this->is_wxr_file )
+		if ( ! preg_match( '/^\d+\.\d+$/', $this->wxr_version ) )
 			return new WP_Error( 'WXR_parse_error', __( 'This does not appear to be a WXR file, missing/invalid WXR version number', 'wordpress-importer' ) );
 
 		return array(
@@ -252,7 +253,8 @@ class WXR_Parser_XML {
 			'categories' => $this->category,
 			'tags' => $this->tag,
 			'terms' => $this->term,
-			'base_url' => $this->base_url
+			'base_url' => $this->base_url,
+			'version' => $this->wxr_version
 		);
 	}
 
@@ -333,7 +335,7 @@ class WXR_Parser_XML {
 				$this->base_url = $this->cdata;
 				break;
 			case 'wp:wxr_version':
-				$this->is_wxr_file = preg_match( '/^\d+\.\d+$/', $this->cdata );
+				$this->wxr_version = $this->cdata;
 				break;
 
 			default:
@@ -370,15 +372,15 @@ class WXR_Parser_Regex {
 	}
 
 	function parse( $file ) {
-		$is_wxr = $in_post = false;
+		$wxr_version = $in_post = false;
 
 		$fp = $this->fopen( $file, 'r' );
 		if ( $fp ) {
 			while ( ! $this->feof( $fp ) ) {
 				$importline = rtrim( $this->fgets( $fp ) );
 
-				if ( ! $is_wxr && preg_match( '|<wp:wxr_version>\d+\.\d+</wp:wxr_version>|', $importline ) )
-					$is_wxr = true;
+				if ( ! $wxr_version && preg_match( '|<wp:wxr_version>(\d+\.\d+)</wp:wxr_version>|', $importline, $version ) )
+					$wxr_version = $version[1];
 
 				if ( false !== strpos( $importline, '<wp:base_site_url>' ) ) {
 					preg_match( '|<wp:base_site_url>(.*?)</wp:base_site_url>|is', $importline, $url );
@@ -424,7 +426,7 @@ class WXR_Parser_Regex {
 			$this->fclose($fp);
 		}
 
-		if ( ! $is_wxr )
+		if ( ! $wxr_version )
 			return new WP_Error( 'WXR_parse_error', __( 'This does not appear to be a WXR file, missing/invalid WXR version number', 'wordpress-importer' ) );
 
 		return array(
@@ -433,7 +435,8 @@ class WXR_Parser_Regex {
 			'categories' => $this->categories,
 			'tags' => $this->tags,
 			'terms' => $this->terms,
-			'base_url' => $this->base_url
+			'base_url' => $this->base_url,
+			'version' => $wxr_version
 		);
 	}
 
