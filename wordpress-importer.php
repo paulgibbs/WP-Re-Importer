@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3-beta8
+Version: 0.3-rc1
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -40,6 +40,7 @@ class WP_Import extends WP_Importer {
 	var $id; // WXR attachment ID
 
 	// information to import from WXR file
+	var $version;
 	var $authors = array();
 	var $posts = array();
 	var $terms = array();
@@ -143,6 +144,7 @@ class WP_Import extends WP_Importer {
 			die();
 		}
 
+		$this->version = $import_data['version'];
 		$this->get_authors_from_import( $import_data );
 		$this->posts = $import_data['posts'];
 		$this->terms = $import_data['terms'];
@@ -200,7 +202,8 @@ class WP_Import extends WP_Importer {
 			return false;
 		}
 
-		if ( $import_data['version'] > $this->max_wxr_version ) {
+		$this->version = $import_data['version'];
+		if ( $this->version > $this->max_wxr_version ) {
 			echo '<div class="error"><p><strong>';
 			printf( __( 'This WXR file (version %s) may not be supported by this version of the importer. Please consider updating.', 'wordpress-importer' ), esc_html($import_data['version']) );
 			echo '</strong></p></div>';
@@ -287,16 +290,35 @@ class WP_Import extends WP_Importer {
 	 */
 	function author_select( $n, $author ) {
 		_e( 'Import author:', 'wordpress-importer' );
-		echo ' <strong>' . esc_html( $author['author_display_name'] . ' (' . $author['author_login'] . ')' ) . '</strong><br />';
+		echo ' <strong>' . esc_html( $author['author_display_name'] );
+		if ( $this->version != '1.0' ) echo ' (' . esc_html( $author['author_login'] ) . ')';
+		echo '</strong><br />';
 
-		if ( $this->allow_create_users() ) {
-			_e( 'Create new user with login name', 'wordpress-importer' );
-			echo ' <input type="text" name="user_new['.$n.']" value="'. esc_attr( sanitize_user( $author['author_login'], true ) ) .'" /><br />';
+		if ( $this->version != '1.0' )
+			echo '<div style="margin-left:18px">';
+
+		$create_users = $this->allow_create_users();
+		if ( $create_users ) {
+			if ( $this->version != '1.0' ) {
+				_e( 'or create new user with login name:', 'wordpress-importer' );
+				$value = '';
+			} else {
+				_e( 'as a new user:', 'wordpress-importer' );
+				$value = esc_attr( sanitize_user( $author['author_login'], true ) );
+			}
+
+			echo ' <input type="text" name="user_new['.$n.']" value="'. $value .'" /><br />';
 		}
 
-		_e( 'Map to existing user', 'wordpress-importer' );
+		if ( ! $create_users && $this->version == '1.0' )
+			_e( 'assign posts to an existing user:', 'wordpress-importer' );
+		else
+			_e( 'or assign posts to an existing user:', 'wordpress-importer' );
 		wp_dropdown_users( array( 'name' => "user_map[$n]", 'multi' => true, 'show_option_all' => __( '- Select -', 'wordpress-importer' ) ) );
 		echo '<input type="hidden" name="imported_authors['.$n.']" value="' . esc_attr( $author['author_login'] ) . '" />';
+
+		if ( $this->version != '1.0' )
+			echo '</div>';
 	}
 
 	/**
@@ -308,6 +330,8 @@ class WP_Import extends WP_Importer {
 		if ( ! isset( $_POST['imported_authors'] ) )
 			return;
 
+		$create_users = $this->allow_create_users();
+
 		foreach ( (array) $_POST['imported_authors'] as $i => $old_login ) {
 			$old_id = isset( $this->authors[$old_login]['author_id'] ) ? intval($this->authors[$old_login]['author_id']) : false;
 
@@ -318,12 +342,12 @@ class WP_Import extends WP_Importer {
 						$this->processed_authors[$old_id] = $user->ID;
 					$this->author_mapping[$old_login] = $user->ID;
 				}
-			} else if ( $this->allow_create_users() && ! empty($_POST['user_new'][$i]) ) {
-				$login = sanitize_user( $_POST['user_new'][$i], true );
-				$user_id = username_exists( $login );
-				if ( ! $user_id ) {
+			} else if ( $create_users ) {
+				if ( ! empty($_POST['user_new'][$i]) ) {
+					$user_id = wp_create_user( $_POST['user_new'][$i], wp_generate_password() );
+				} else if ( $this->version != '1.0' ) {
 					$user_data = array(
-						'user_login' => $login,
+						'user_login' => $old_login,
 						'user_pass' => wp_generate_password(),
 						'user_email' => isset( $this->authors[$old_login]['author_email'] ) ? $this->authors[$old_login]['author_email'] : '',
 						'display_name' => $this->authors[$old_login]['author_display_name'],
