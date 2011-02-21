@@ -6,6 +6,7 @@ Description: Import posts, pages, comments, custom fields, categories, tags and 
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
 Version: 0.3-rc1
+Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
 
@@ -13,7 +14,7 @@ if ( ! defined( 'WP_LOAD_IMPORTERS' ) )
 	return;
 
 /** Display verbose errors */
-define( 'IMPORT_DEBUG', true );
+define( 'IMPORT_DEBUG', false );
 
 // Load Importer API
 require_once ABSPATH . 'wp-admin/includes/import.php';
@@ -1044,16 +1045,16 @@ class WP_Import extends WP_Importer {
 	}
 }
 
-/**
- * WordPress Importer object for registering the import callback
- * @global WP_Import $wp_import
- */
-$wp_import = new WP_Import();
-register_importer( 'wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.', 'wordpress-importer'), array( $wp_import, 'dispatch' ) );
-
 } // class_exists( 'WP_Importer' )
 
 function wordpress_importer_init() {
-    load_plugin_textdomain( 'wordpress-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+	load_plugin_textdomain( 'wordpress-importer', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+
+	/**
+	 * WordPress Importer object for registering the import callback
+	 * @global WP_Import $wp_import
+	 */
+	$GLOBALS['wp_import'] = new WP_Import();
+	register_importer( 'wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.', 'wordpress-importer'), array( $wp_import, 'dispatch' ) );
 }
-add_action( 'init', 'wordpress_importer_init' );
+add_action( 'admin_init', 'wordpress_importer_init' );
