@@ -23,7 +23,7 @@ Import posts, pages, comments, custom fields, categories, tags and more from a W
 = 0.3 =
 * Use an XML Parser if possible
 * Proper import support for nav menus
-* ... and more
+* ... and more, see [Trac ticket #15197](http://core.trac.wordpress.org/ticket/15197)
 
 = 0.1 =
 * Initial release
@@ -31,7 +31,7 @@ Import posts, pages, comments, custom fields, categories, tags and more from a W
 == Upgrade Notice ==
 
 = 0.3 =
-Upgrade for a more robust and reliable experience when importing WordPress export file, and for compatibility with WordPress 3.1.
+Upgrade for a more robust and reliable experience when importing WordPress export files, and for compatibility with WordPress 3.1.
 
 == Filters ==
 
