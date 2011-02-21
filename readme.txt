@@ -3,7 +3,7 @@ Contributors: wordpressdotorg
 Donate link: 
 Tags: importer, wordpress
 Requires at least: 3.0
-Tested up to: 3.1-alpha
+Tested up to: 3.1
 Stable tag: 0.2
 
 Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
@@ -31,7 +31,7 @@ Import posts, pages, comments, custom fields, categories, tags and more from a W
 == Upgrade Notice ==
 
 = 0.3 =
-Upgrade for a more robust and reliable experience when importing WordPress export file.
+Upgrade for a more robust and reliable experience when importing WordPress export file, and for compatibility with WordPress 3.1.
 
 == Filters ==
 
