@@ -558,6 +558,7 @@ class WXR_Parser_Regex {
 					'comment_approved' => $this->get_tag( $comment, 'wp:comment_approved' ),
 					'comment_type' => $this->get_tag( $comment, 'wp:comment_type' ),
 					'comment_parent' => $this->get_tag( $comment, 'wp:comment_parent' ),
+					'comment_user_id' => $this->get_tag( $comment, 'wp:comment_user_id' ),
 				);
 			}
 		}

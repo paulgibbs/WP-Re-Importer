@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.4-alpha1
+Version: 0.4-alpha2
 Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
@@ -639,6 +639,8 @@ class WP_Import extends WP_Importer {
 					$newcomments[$comment_id]['comment_approved']     = $comment['comment_approved'];
 					$newcomments[$comment_id]['comment_type']         = $comment['comment_type'];
 					$newcomments[$comment_id]['comment_parent'] 	  = $comment['comment_parent'];
+					if ( isset( $this->processed_authors[$comment['comment_user_id']] ) )
+						$newcomments[$comment_id]['user_id'] = $this->processed_authors[$comment['comment_user_id']];
 				}
 				ksort( $newcomments );
 
