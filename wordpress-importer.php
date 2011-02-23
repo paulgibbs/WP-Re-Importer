@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.3
+Version: 0.4-alpha1
 Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
@@ -393,7 +393,8 @@ class WP_Import extends WP_Importer {
 			$term_id = term_exists( $cat['category_nicename'], 'category' );
 			if ( $term_id ) {
 				if ( is_array($term_id) ) $term_id = $term_id['term_id'];
-				$this->processed_terms[intval($cat['term_id'])] = (int) $term_id;
+				if ( isset($cat['term_id']) )
+					$this->processed_terms[intval($cat['term_id'])] = (int) $term_id;
 				continue;
 			}
 
@@ -408,7 +409,8 @@ class WP_Import extends WP_Importer {
 
 			$id = wp_insert_category( $catarr );
 			if ( ! is_wp_error( $id ) ) {
-				$this->processed_terms[intval($cat['term_id'])] = $id;
+				if ( isset($cat['term_id']) )
+					$this->processed_terms[intval($cat['term_id'])] = $id;
 			} else {
 				printf( __( 'Failed to import category %s', 'wordpress-importer' ), esc_html($cat['category_nicename']) );
 				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
@@ -435,7 +437,8 @@ class WP_Import extends WP_Importer {
 			$term_id = term_exists( $tag['tag_slug'], 'post_tag' );
 			if ( $term_id ) {
 				if ( is_array($term_id) ) $term_id = $term_id['term_id'];
-				$this->processed_terms[intval($tag['term_id'])] = (int) $term_id;
+				if ( isset($tag['term_id']) )
+					$this->processed_terms[intval($tag['term_id'])] = (int) $term_id;
 				continue;
 			}
 
@@ -444,7 +447,8 @@ class WP_Import extends WP_Importer {
 
 			$id = wp_insert_term( $tag['tag_name'], 'post_tag', $tagarr );
 			if ( ! is_wp_error( $id ) ) {
-				$this->processed_terms[intval($tag['term_id'])] = $id['term_id'];
+				if ( isset($tag['term_id']) )
+					$this->processed_terms[intval($tag['term_id'])] = $id['term_id'];
 			} else {
 				printf( __( 'Failed to import post tag %s', 'wordpress-importer' ), esc_html($tag['tag_name']) );
 				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
@@ -471,7 +475,8 @@ class WP_Import extends WP_Importer {
 			$term_id = term_exists( $term['slug'], $term['term_taxonomy'] );
 			if ( $term_id ) {
 				if ( is_array($term_id) ) $term_id = $term_id['term_id'];
-				$this->processed_terms[intval($term['term_id'])] = (int) $term_id;
+				if ( isset($term['term_id']) )
+					$this->processed_terms[intval($term['term_id'])] = (int) $term_id;
 				continue;
 			}
 
@@ -486,7 +491,8 @@ class WP_Import extends WP_Importer {
 
 			$id = wp_insert_term( $term['term_name'], $term['term_taxonomy'], $termarr );
 			if ( ! is_wp_error( $id ) ) {
-				$this->processed_terms[intval($term['term_id'])] = $id['term_id'];
+				if ( isset($term['term_id']) )
+					$this->processed_terms[intval($term['term_id'])] = $id['term_id'];
 			} else {
 				printf( __( 'Failed to import %s %s', 'wordpress-importer' ), esc_html($term['term_taxonomy']), esc_html($term['term_name']) );
 				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )

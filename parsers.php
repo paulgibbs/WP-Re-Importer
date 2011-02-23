@@ -157,6 +157,9 @@ class WXR_Parser_SimpleXML {
 			$post['post_password'] = (string) $wp->post_password;
 			$post['is_sticky'] = (int) $wp->is_sticky;
 
+			if ( isset($wp->attachment_url) )
+				$post['attachment_url'] = $wp->attachment_url;
+
 			foreach ( $item->category as $c ) {
 				$att = $c->attributes();
 				if ( isset( $att['nicename'] ) )
@@ -211,7 +214,7 @@ class WXR_Parser_SimpleXML {
  */
 class WXR_Parser_XML {
 	var $wp_tags = array(
-		'wp:post_id', 'wp:post_date', 'wp:post_date_gmt', 'wp:comment_status', 'wp:ping_status',
+		'wp:post_id', 'wp:post_date', 'wp:post_date_gmt', 'wp:comment_status', 'wp:ping_status', 'wp:attachment_url',
 		'wp:status', 'wp:post_name', 'wp:post_parent', 'wp:menu_order', 'wp:post_type', 'wp:post_password',
 		'wp:is_sticky', 'wp:term_id', 'wp:category_nicename', 'wp:category_parent', 'wp:cat_name', 'wp:category_description',
 		'wp:tag_slug', 'wp:tag_name', 'wp:tag_description', 'wp:term_taxonomy', 'wp:term_parent',
@@ -524,6 +527,10 @@ class WXR_Parser_Regex {
 			'post_title', 'status', 'post_name', 'comment_status', 'ping_status', 'guid', 'post_parent',
 			'menu_order', 'post_type', 'post_password', 'is_sticky'
 		);
+
+		$attachment_url = $this->get_tag( $post, 'wp:attachment_url' );
+		if ( $attachment_url )
+			$postdata['attachment_url'] = $attachment_url;
 
 		preg_match_all( '|<category domain="([^"]+?)" nicename="([^"]+?)">(.+?)</category>|is', $post, $terms, PREG_SET_ORDER );
 		foreach ( $terms as $t ) {

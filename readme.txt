@@ -36,6 +36,7 @@ Upgrade for a more robust and reliable experience when importing WordPress expor
 == Filters ==
 
 The importer has a couple of filters to allow you to completely enable/block certain features:
+
 * `import_allow_create_users`: return false if you only want to allow mapping to existing users
 * `import_allow_fetch_attachments`: return false if you do not wish to allow importing and downloading of attachments
 * `import_attachment_size_limit`: return an integer value for the maximum file size in bytes to save (default is 0, which is unlimited)
