@@ -158,7 +158,7 @@ class WXR_Parser_SimpleXML {
 			$post['is_sticky'] = (int) $wp->is_sticky;
 
 			if ( isset($wp->attachment_url) )
-				$post['attachment_url'] = $wp->attachment_url;
+				$post['attachment_url'] = (string) $wp->attachment_url;
 
 			foreach ( $item->category as $c ) {
 				$att = $c->attributes();
