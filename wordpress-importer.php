@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.4-alpha2
+Version: 0.4-alpha3
 Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
@@ -572,6 +572,20 @@ class WP_Import extends WP_Importer {
 
 				if ( 'attachment' == $postdata['post_type'] ) {
 					$remote_url = ! empty($post['attachment_url']) ? $post['attachment_url'] : $post['guid'];
+
+					// try to use _wp_attached file for upload folder placement to ensure the same location as the export site
+					// e.g. location is 2003/05/image.jpg but the attachment post_date is 2010/09, see media_handle_upload()
+					$postdata['upload_date'] = $post['post_date'];
+					if ( isset( $post['postmeta'] ) ) {
+						foreach( $post['postmeta'] as $meta ) {
+							if ( $meta['key'] == '_wp_attached_file' ) {
+								if ( preg_match( '%^[0-9]{4}/[0-9]{2}%', $meta['value'], $matches ) )
+									$postdata['upload_date'] = $matches[0];
+								break;
+							}
+						}
+					}
+
 					$comment_post_ID = $post_id = $this->process_attachment( $postdata, $remote_url );
 				} else {
 					$comment_post_ID = $post_id = wp_insert_post( $postdata, true );
@@ -833,7 +847,7 @@ class WP_Import extends WP_Importer {
 		$file_name = basename( $url );
 
 		// get placeholder file in the upload dir with a unique, sanitized filename
-		$upload = wp_upload_bits( $file_name, 0, '', $post['post_date'] );
+		$upload = wp_upload_bits( $file_name, 0, '', $post['upload_date'] );
 		if ( $upload['error'] )
 			return new WP_Error( 'upload_dir_error', $upload['error'] );
 
