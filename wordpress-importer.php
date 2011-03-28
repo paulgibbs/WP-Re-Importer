@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.4-alpha3
+Version: 0.4-alpha4
 Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
@@ -14,7 +14,7 @@ if ( ! defined( 'WP_LOAD_IMPORTERS' ) )
 	return;
 
 /** Display verbose errors */
-define( 'IMPORT_DEBUG', false );
+define( 'IMPORT_DEBUG', true );
 
 // Load Importer API
 require_once ABSPATH . 'wp-admin/includes/import.php';
@@ -103,6 +103,7 @@ class WP_Import extends WP_Importer {
 	 */
 	function import( $file ) {
 		add_filter( 'import_post_meta_key', array( $this, 'is_valid_meta_key' ) );
+		add_filter( 'http_request_timeout', array( &$this, 'bump_request_timeout' ) );
 
 		$this->import_start( $file );
 
@@ -822,12 +823,15 @@ class WP_Import extends WP_Importer {
 		$post_id = wp_insert_attachment( $post, $upload['file'] );
 		wp_update_attachment_metadata( $post_id, wp_generate_attachment_metadata( $post_id, $upload['file'] ) );
 
-		// remap the thumbnail url.  this isn't perfect because we're just guessing the original url.
-		if ( preg_match( '@^image/@', $info['type'] ) && $thumb_url = wp_get_attachment_thumb_url( $post_id ) ) {
+		// remap resized image URLs, works by stripping the extension and remapping the URL stub.
+		if ( preg_match( '!^image/!', $info['type'] ) ) {
 			$parts = pathinfo( $url );
-			$ext = $parts['extension'];
-			$name = basename($parts['basename'], ".{$ext}");
-			$this->url_remap[$parts['dirname'] . '/' . $name . '.thumbnail.' . $ext] = $thumb_url;
+			$name = basename( $parts['basename'], ".{$parts['extension']}" ); // PATHINFO_FILENAME in PHP 5.2
+
+			$parts_new = pathinfo( $upload['url'] );
+			$name_new = basename( $parts_new['basename'], ".{$parts_new['extension']}" );
+
+			$this->url_remap[$parts['dirname'] . '/' . $name] = $parts_new['dirname'] . '/' . $name_new;
 		}
 
 		return $post_id;
@@ -841,8 +845,6 @@ class WP_Import extends WP_Importer {
 	 * @return array|WP_Error Local file location details on success, WP_Error otherwise
 	 */
 	function fetch_remote_file( $url, $post ) {
-		add_filter( 'http_request_timeout', array( &$this, 'bump_request_timeout' ) );
-
 		// extract the file name and extension from the url
 		$file_name = basename( $url );
 
@@ -886,8 +888,8 @@ class WP_Import extends WP_Importer {
 
 		// keep track of the old and new urls so we can substitute them later
 		$this->url_remap[$url] = $upload['url'];
-		$this->url_remap[$post['guid']] = $upload['url'];
-		// if the remote url is redirected somewhere else, keep track of the destination too
+		$this->url_remap[$post['guid']] = $upload['url']; // r13735, really needed?
+		// keep track of the destination if the remote url is redirected somewhere else
 		if ( isset($headers['x-final-location']) && $headers['x-final-location'] != $url )
 			$this->url_remap[$headers['x-final-location']] = $upload['url'];
 
