@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.4-alpha4
+Version: 0.4-beta1
 Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
@@ -690,7 +690,7 @@ class WP_Import extends WP_Importer {
 						if ( ! $value )
 							$value = maybe_unserialize( $meta['value'] );
 
-						update_post_meta( $post_id, $key, $value );
+						add_post_meta( $post_id, $key, $value );
 						do_action( 'import_post_meta', $post_id, $key, $value );
 
 						// if the post has a featured image, take note of this in case of remap
