@@ -523,7 +523,7 @@ class WP_Import extends WP_Importer {
 				continue;
 			}
 
-			if ( isset( $this->processed_posts[$post['post_id']] ) )
+			if ( isset( $this->processed_posts[$post['post_id']] ) && ! empty( $post['post_id'] ) )
 				continue;
 
 			if ( $post['status'] == 'auto-draft' )
@@ -654,6 +654,7 @@ class WP_Import extends WP_Importer {
 					$newcomments[$comment_id]['comment_approved']     = $comment['comment_approved'];
 					$newcomments[$comment_id]['comment_type']         = $comment['comment_type'];
 					$newcomments[$comment_id]['comment_parent'] 	  = $comment['comment_parent'];
+					$newcomments[$comment_id]['commentmeta']          = $comment['commentmeta'];
 					if ( isset( $this->processed_authors[$comment['comment_user_id']] ) )
 						$newcomments[$comment_id]['user_id'] = $this->processed_authors[$comment['comment_user_id']];
 				}
@@ -666,6 +667,12 @@ class WP_Import extends WP_Importer {
 							$comment['comment_parent'] = $inserted_comments[$comment['comment_parent']];
 						$comment = wp_filter_comment( $comment );
 						$inserted_comments[$key] = wp_insert_comment( $comment );
+
+						foreach( $comment['commentmeta'] as $meta ) {
+							$value = maybe_unserialize( $meta['value'] );
+							add_comment_meta( $inserted_comments[$key], $meta['key'], $value );
+						}
+
 						$num_comments++;
 					}
 				}
