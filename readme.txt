@@ -4,7 +4,7 @@ Donate link:
 Tags: importer, wordpress
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.4
+Stable tag: 0.5
 
 Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 
