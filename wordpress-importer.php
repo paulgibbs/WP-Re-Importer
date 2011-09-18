@@ -335,7 +335,7 @@ class WP_Import extends WP_Importer {
 		$create_users = $this->allow_create_users();
 
 		foreach ( (array) $_POST['imported_authors'] as $i => $old_login ) {
-			// Multsite adds strtolower to sanitize_user. Need to sanitize here to stop breakage in process_posts.
+			// Multisite adds strtolower to sanitize_user. Need to sanitize here to stop breakage in process_posts.
 			$santized_old_login = sanitize_user( $old_login, true );
 			$old_id = isset( $this->authors[$old_login]['author_id'] ) ? intval($this->authors[$old_login]['author_id']) : false;
 
