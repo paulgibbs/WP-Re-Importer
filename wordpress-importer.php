@@ -5,7 +5,7 @@ Plugin URI: http://wordpress.org/extend/plugins/wordpress-importer/
 Description: Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
 Author: wordpressdotorg
 Author URI: http://wordpress.org/
-Version: 0.5
+Version: 0.5.1
 Text Domain: wordpress-importer
 License: GPL version 2 or later - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 */
@@ -36,7 +36,7 @@ require dirname( __FILE__ ) . '/parsers.php';
  */
 if ( class_exists( 'WP_Importer' ) ) {
 class WP_Import extends WP_Importer {
-	var $max_wxr_version = 1.1; // max. supported WXR version
+	var $max_wxr_version = 1.2; // max. supported WXR version
 
 	var $id; // WXR attachment ID
 

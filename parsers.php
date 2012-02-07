@@ -465,7 +465,18 @@ class WXR_Parser_Regex {
 		global $wpdb;
 		preg_match( "|<$tag.*?>(.*?)</$tag>|is", $string, $return );
 		if ( isset( $return[1] ) ) {
-			$return = preg_replace( '|^<!\[CDATA\[(.*)\]\]>$|s', '$1', $return[1] );
+			if ( substr( $return[1], 0, 9 ) == '<![CDATA[' ) {
+				if ( strpos( $return[1], ']]]]><![CDATA[>' ) !== false ) {
+					preg_match_all( '|<!\[CDATA\[(.*?)\]\]>|s', $return[1], $matches );
+					$return = '';
+					foreach( $matches[1] as $match )
+						$return .= $match;
+				} else {
+					$return = preg_replace( '|^<!\[CDATA\[(.*)\]\]>$|s', '$1', $return[1] );
+				}
+			} else {
+				$return = $return[1];
+			}
 			$return = $wpdb->escape( trim( $return ) );
 		} else {
 			$return = '';
