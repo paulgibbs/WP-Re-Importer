@@ -196,7 +196,7 @@ class WP_Import extends WP_Importer {
 			return false;
 		} else if ( ! file_exists( $file['file'] ) ) {
 			echo '<p><strong>' . __( 'Sorry, there has been an error.', 'wordpress-importer' ) . '</strong><br />';
-			printf( __( 'The export file could not be found at <code>%s</code>. It is likely that this was caused by a permissions problem.' ), esc_html( $file['file'] ) );
+			printf( __( 'The export file could not be found at <code>%s</code>. It is likely that this was caused by a permissions problem.', 'wordpress-importer' ), esc_html( $file['file'] ) );
 			echo '</p>';
 			return false;
 		}
