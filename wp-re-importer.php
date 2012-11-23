@@ -2,7 +2,7 @@
 /*
 Plugin Name: WP Re-Importer
 Plugin URI: http://wordpress.org/extend/plugins/wp-re-importer/
-Description: Import content from a WordPress export file. Content that already exist is added as a post revision. Also lets you specify a default parent post.
+Description: Import content from a WordPress export file. Content that already exists is added as a post revision. Also lets you specify a default parent post.
 Version: 1.0
 Requires at least: 3.5
 Tested up to: 3.5

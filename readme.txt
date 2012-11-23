@@ -7,7 +7,7 @@ Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Import content from a WordPress export file. Content that already exist is added as a post revision. Also lets you specify a default parent post.
+Import content from a WordPress export file. Content that already exists is added as a post revision. Also lets you specify a default parent post.
 
 == Description ==
 
