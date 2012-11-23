@@ -605,9 +605,13 @@ class WP_Re_Importer extends WP_Importer {
 				'post_excerpt' => $post['post_excerpt'], 'post_title' => $post['post_title'],
 				'post_status' => $post['status'], 'post_name' => $post['post_name'],
 				'comment_status' => $post['comment_status'], 'ping_status' => $post['ping_status'],
-				'guid' => $post['guid'], 'post_parent' => $post_parent, 'menu_order' => $post['menu_order'],
+				'guid' => $post['guid'], 'menu_order' => $post['menu_order'],
 				'post_type' => $post['post_type'], 'post_password' => $post['post_password']
 			);
+
+			// Don't set post_parent to false as it will remove a post_parent on a re-imported post
+			if ( ! empty( $post_parent ) )
+				$postdata['post_parent'] = $post_parent;
 
 			if ( 'attachment' == $postdata['post_type'] ) {
 				$remote_url = ! empty($post['attachment_url']) ? $post['attachment_url'] : $post['guid'];
