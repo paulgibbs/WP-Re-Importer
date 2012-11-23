@@ -1,70 +1,76 @@
-# Copyright (C) 2011 WordPress Importer
-# This file is distributed under the same license as the WordPress Importer package.
+# Copyright (C) 2012 WP Re-Importer
+# This file is distributed under the same license as the WP Re-Importer package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WordPress Importer 0.5\n"
-"Report-Msgid-Bugs-To: http://wordpress.org/tag/wordpress-importer\n"
-"POT-Creation-Date: 2011-07-16 15:45:12+00:00\n"
+"Project-Id-Version: WP Re-Importer 1.0\n"
+"Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-re-importer\n"
+"POT-Creation-Date: 2012-11-23 14:35:32+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2010-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2012-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 
-#: parsers.php:42 parsers.php:63
+#: parsers.php:39 parsers.php:60
 msgid "There was an error when reading this WXR file"
 msgstr ""
 
-#: parsers.php:43
+#: parsers.php:40
 msgid ""
 "Details are shown above. The importer will now try again with a different "
 "parser..."
 msgstr ""
 
-#: parsers.php:67 parsers.php:72 parsers.php:262 parsers.php:451
+#: parsers.php:64 parsers.php:69 parsers.php:259 parsers.php:448
 msgid ""
 "This does not appear to be a WXR file, missing/invalid WXR version number"
 msgstr ""
 
-#: wordpress-importer.php:134 wordpress-importer.php:143
-#: wordpress-importer.php:194 wordpress-importer.php:202
+#: wp-re-importer.php:150 wp-re-importer.php:159 wp-re-importer.php:210
+#: wp-re-importer.php:214 wp-re-importer.php:223
 msgid "Sorry, there has been an error."
 msgstr ""
 
-#: wordpress-importer.php:135
+#: wp-re-importer.php:151
 msgid "The file does not exist, please try again."
 msgstr ""
 
-#: wordpress-importer.php:178
+#: wp-re-importer.php:194
 msgid "All done."
 msgstr ""
 
-#: wordpress-importer.php:178
+#: wp-re-importer.php:194
 msgid "Have fun!"
 msgstr ""
 
-#: wordpress-importer.php:179
+#: wp-re-importer.php:195
 msgid "Remember to update the passwords and roles of imported users."
 msgstr ""
 
-#: wordpress-importer.php:210
+#: wp-re-importer.php:215
+msgid ""
+"The export file could not be found at <code>%s</code>. It is likely that "
+"this was caused by a permissions problem."
+msgstr ""
+
+#: wp-re-importer.php:231
 msgid ""
 "This WXR file (version %s) may not be supported by this version of the "
 "importer. Please consider updating."
 msgstr ""
 
-#: wordpress-importer.php:235
+#: wp-re-importer.php:256
 msgid ""
 "Failed to import author %s. Their posts will be attributed to the current "
 "user."
 msgstr ""
 
-#: wordpress-importer.php:261
+#: wp-re-importer.php:282
 msgid "Assign Authors"
 msgstr ""
 
-#: wordpress-importer.php:262
+#: wp-re-importer.php:283
 msgid ""
 "To make it easier for you to edit and save the imported content, you may "
 "want to reassign the author of the imported item to an existing user of this "
@@ -72,160 +78,167 @@ msgid ""
 "code>s entries."
 msgstr ""
 
-#: wordpress-importer.php:264
+#: wp-re-importer.php:286
 msgid ""
 "If a new user is created by WordPress, a new password will be randomly "
 "generated and the new user&#8217;s role will be set as %s. Manually changing "
 "the new user&#8217;s details will be necessary."
 msgstr ""
 
-#: wordpress-importer.php:274
+#: wp-re-importer.php:297
 msgid "Import Attachments"
 msgstr ""
 
-#: wordpress-importer.php:277
+#: wp-re-importer.php:300
 msgid "Download and import file attachments"
 msgstr ""
 
-#: wordpress-importer.php:281
+#: wp-re-importer.php:306
+msgid ""
+"A default parent post can be set for posts and pages that do not have a "
+"hierarchy defined in the WordPress export file."
+msgstr ""
+
+#: wp-re-importer.php:310
+msgid "Do not set or change parent post"
+msgstr ""
+
+#: wp-re-importer.php:315
 msgid "Submit"
 msgstr ""
 
-#: wordpress-importer.php:294
+#: wp-re-importer.php:328
 msgid "Import author:"
 msgstr ""
 
-#: wordpress-importer.php:305
+#: wp-re-importer.php:339
 msgid "or create new user with login name:"
 msgstr ""
 
-#: wordpress-importer.php:308
+#: wp-re-importer.php:342
 msgid "as a new user:"
 msgstr ""
 
-#: wordpress-importer.php:316
+#: wp-re-importer.php:350
 msgid "assign posts to an existing user:"
 msgstr ""
 
-#: wordpress-importer.php:318
+#: wp-re-importer.php:352
 msgid "or assign posts to an existing user:"
 msgstr ""
 
-#: wordpress-importer.php:319
+#: wp-re-importer.php:353
 msgid "- Select -"
 msgstr ""
 
-#: wordpress-importer.php:369
+#: wp-re-importer.php:403
 msgid ""
 "Failed to create new user for %s. Their posts will be attributed to the "
 "current user."
 msgstr ""
 
-#: wordpress-importer.php:418
+#: wp-re-importer.php:452
 msgid "Failed to import category %s"
 msgstr ""
 
-#: wordpress-importer.php:456
+#: wp-re-importer.php:490
 msgid "Failed to import post tag %s"
 msgstr ""
 
-#: wordpress-importer.php:500 wordpress-importer.php:626
+#: wp-re-importer.php:534 wp-re-importer.php:670
 msgid "Failed to import %s %s"
 msgstr ""
 
-#: wordpress-importer.php:522
+#: wp-re-importer.php:556
 msgid "Failed to import &#8220;%s&#8221;: Invalid post type %s"
 msgstr ""
 
-#: wordpress-importer.php:543
-msgid "%s &#8220;%s&#8221; already exists."
-msgstr ""
-
-#: wordpress-importer.php:598
+#: wp-re-importer.php:643
 msgid "Failed to import %s &#8220;%s&#8221;"
 msgstr ""
 
-#: wordpress-importer.php:744
+#: wp-re-importer.php:788
 msgid "Menu item skipped due to missing menu slug"
 msgstr ""
 
-#: wordpress-importer.php:751
+#: wp-re-importer.php:795
 msgid "Menu item skipped due to invalid menu slug: %s"
 msgstr ""
 
-#: wordpress-importer.php:814
+#: wp-re-importer.php:858
 msgid "Fetching attachments is not enabled"
 msgstr ""
 
-#: wordpress-importer.php:827
+#: wp-re-importer.php:871
 msgid "Invalid file type"
 msgstr ""
 
-#: wordpress-importer.php:871
+#: wp-re-importer.php:915
 msgid "Remote server did not respond"
 msgstr ""
 
-#: wordpress-importer.php:877
+#: wp-re-importer.php:921
 msgid "Remote server returned error response %1$d %2$s"
 msgstr ""
 
-#: wordpress-importer.php:884
+#: wp-re-importer.php:928
 msgid "Remote file is incorrect size"
 msgstr ""
 
-#: wordpress-importer.php:889
+#: wp-re-importer.php:933
 msgid "Zero size file downloaded"
 msgstr ""
 
-#: wordpress-importer.php:895
+#: wp-re-importer.php:939
 msgid "Remote file is too large, limit is %s"
 msgstr ""
 
-#: wordpress-importer.php:994
-msgid "Import WordPress"
+#. #-#-#-#-#  wp-re-importer.pot (WP Re-Importer 1.0)  #-#-#-#-#
+#. Plugin Name of the plugin/theme
+#: wp-re-importer.php:1038
+msgid "WP Re-Importer"
 msgstr ""
 
-#: wordpress-importer.php:1001
+#: wp-re-importer.php:1045
 msgid ""
 "A new version of this importer is available. Please update to version %s to "
 "ensure compatibility with newer export files."
 msgstr ""
 
-#: wordpress-importer.php:1016
+#: wp-re-importer.php:1060
 msgid ""
-"Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import "
-"the posts, pages, comments, custom fields, categories, and tags into this "
-"site."
+"Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the "
+"posts, pages, comments, custom fields, categories, and tags into this site."
 msgstr ""
 
-#: wordpress-importer.php:1017
+#: wp-re-importer.php:1061
+msgid ""
+"If the import tries to create a post or page which already exists, it will "
+"be created as a new revision rather than a new post. "
+msgstr ""
+
+#: wp-re-importer.php:1062
 msgid "Choose a WXR (.xml) file to upload, then click Upload file and import."
 msgstr ""
 
-#: wordpress-importer.php:1091
-msgid ""
-"Import <strong>posts, pages, comments, custom fields, categories, and tags</"
-"strong> from a WordPress export file."
-msgstr ""
-
-#. Plugin Name of the plugin/theme
-msgid "WordPress Importer"
+#: wp-re-importer.php:1130
+msgid "WP Re-Importer. See %s for details."
 msgstr ""
 
 #. Plugin URI of the plugin/theme
-msgid "http://wordpress.org/extend/plugins/wordpress-importer/"
+msgid "http://wordpress.org/extend/plugins/wp-re-importer/"
 msgstr ""
 
 #. Description of the plugin/theme
 msgid ""
-"Import posts, pages, comments, custom fields, categories, tags and more from "
-"a WordPress export file."
+"Import content from a WordPress export file. Content that already exist is "
+"added as a post revision. Also lets you specify a default parent post."
 msgstr ""
 
 #. Author of the plugin/theme
-msgid "wordpressdotorg"
+msgid "Paul Gibbs"
 msgstr ""
 
 #. Author URI of the plugin/theme
-msgid "http://wordpress.org/"
+msgid "http://byotos.com/"
 msgstr ""
