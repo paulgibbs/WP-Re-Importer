@@ -560,9 +560,8 @@ class WP_Re_Importer extends WP_Importer {
 			$post_type_object = get_post_type_object( $post['post_type'] );
 
 			// If the post exists, we'll create a post revision later instead of a whole new post
-			$post_exists = post_exists( $post['post_title'], '', $post['post_date'] );
-			if ( $post_exists && get_post_type( $post_exists ) != $post['post_type'] )
-				$post_exists = 0;
+			$post_exists = get_page_by_title( $post['post_title'], OBJECT, $post['post_type'] );	
+			$post_exists = ! empty( $post_exists ) ? $post_exists->ID : 0;
 
 			$post_parent = (int) $post['post_parent'];
 			if ( $post_parent ) {
