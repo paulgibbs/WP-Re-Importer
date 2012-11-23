@@ -278,26 +278,39 @@ class WP_Re_Importer extends WP_Importer {
 	<?php wp_nonce_field( 'import-wpri' ); ?>
 	<input type="hidden" name="import_id" value="<?php echo $this->id; ?>" />
 
-<?php if ( ! empty( $this->authors ) ) : ?>
-	<h3><?php _e( 'Assign Authors', 'wpri' ); ?></h3>
-	<p><?php _e( 'To make it easier for you to edit and save the imported content, you may want to reassign the author of the imported item to an existing user of this site. For example, you may want to import all the entries as <code>admin</code>s entries.', 'wpri' ); ?></p>
-<?php if ( $this->allow_create_users() ) : ?>
-	<p><?php printf( __( 'If a new user is created by WordPress, a new password will be randomly generated and the new user&#8217;s role will be set as %s. Manually changing the new user&#8217;s details will be necessary.', 'wpri' ), esc_html( get_option('default_role') ) ); ?></p>
-<?php endif; ?>
-	<ol id="authors">
-<?php foreach ( $this->authors as $author ) : ?>
-		<li><?php $this->author_select( $j++, $author ); ?></li>
-<?php endforeach; ?>
-	</ol>
-<?php endif; ?>
+	<?php if ( ! empty( $this->authors ) ) : ?>
+		<h3><?php _e( 'Assign Authors', 'wpri' ); ?></h3>
+		<p><?php _e( 'To make it easier for you to edit and save the imported content, you may want to reassign the author of the imported item to an existing user of this site. For example, you may want to import all the entries as <code>admin</code>s entries.', 'wpri' ); ?></p>
 
-<?php if ( $this->allow_fetch_attachments() ) : ?>
-	<h3><?php _e( 'Import Attachments', 'wpri' ); ?></h3>
-	<p>
-		<input type="checkbox" value="1" name="fetch_attachments" id="import-attachments" />
-		<label for="import-attachments"><?php _e( 'Download and import file attachments', 'wpri' ); ?></label>
-	</p>
-<?php endif; ?>
+		<?php if ( $this->allow_create_users() ) : ?>
+			<p><?php printf( __( 'If a new user is created by WordPress, a new password will be randomly generated and the new user&#8217;s role will be set as %s. Manually changing the new user&#8217;s details will be necessary.', 'wpri' ), esc_html( get_option('default_role') ) ); ?></p>
+		<?php endif; ?>
+
+		<ol id="authors">
+			<?php foreach ( $this->authors as $author ) : ?>
+				<li><?php $this->author_select( $j++, $author ); ?></li>
+			<?php endforeach; ?>
+		</ol>
+	<?php endif; ?>
+
+	<?php if ( $this->allow_fetch_attachments() ) : ?>
+		<h3><?php _e( 'Import Attachments', 'wpri' ); ?></h3>
+		<p>
+			<input type="checkbox" value="1" name="fetch_attachments" id="import-attachments" />
+			<label for="import-attachments"><?php _e( 'Download and import file attachments', 'wpri' ); ?></label>
+		</p>
+	<?php endif; ?>
+
+	<?php if ( wp_count_posts( 'page' )->publish ) : ?>
+		<fieldset id="wpri-pages">
+			<label for="wpri_parent_post_id" style="display: block"><?php _e( "A default parent post can be set for posts and pages that do not have a hierarchy defined in the WordPress export file.", 'wpri' ); ?></label>
+			<?php wp_dropdown_pages( array(
+				'name'              => 'wpri_parent_post_id',
+				'option_none_value' => 0,
+				'show_option_none'  => __( "Do not set or change parent post", 'wpri' ),
+			) ); ?>
+		</fieldset>
+	<?php endif; ?>
 
 	<p class="submit"><input type="submit" class="button" value="<?php esc_attr_e( 'Submit', 'wpri' ); ?>" /></p>
 </form>
@@ -573,6 +586,10 @@ class WP_Re_Importer extends WP_Importer {
 					$this->post_orphans[intval($post['post_id'])] = $post_parent;
 					$post_parent = 0;
 				}
+
+			} elseif ( ! empty( $_POST['wpri_parent_post_id'] ) ) {
+				// If the import hasn't defined a post parent, see if the admin asked for a default post parent
+				$post_parent = (int) $_POST['wpri_parent_post_id'];
 			}
 
 			// map the post author
@@ -1041,7 +1058,7 @@ class WP_Re_Importer extends WP_Importer {
 	function greet() {
 		echo '<div class="narrow">';
 		echo '<p>'.__( 'Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'wpri' ).'</p>';
-		echo '<p>'.__( 'If a post or page already exists, a new revision will be created instead of a new post. ', 'wpri' ).'</p>';
+		echo '<p>'.__( 'If the import tries to create a post or page which already exists, it will be created as a new revision rather than a new post. ', 'wpri' ).'</p>';
 		echo '<p>'.__( 'Choose a WXR (.xml) file to upload, then click Upload file and import.', 'wpri' ).'</p>';
 		wp_import_upload_form( 'admin.php?import=wpri&amp;step=1' );
 		echo '</div>';
