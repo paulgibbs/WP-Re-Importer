@@ -274,7 +274,7 @@ class WP_Re_Importer extends WP_Importer {
 	function import_options() {
 		$j = 0;
 ?>
-<form action="<?php echo admin_url( 'admin.php?import=wordpress&amp;step=2' ); ?>" method="post">
+<form action="<?php echo admin_url( 'admin.php?import=wpri&amp;step=2' ); ?>" method="post">
 	<?php wp_nonce_field( 'import-wpri' ); ?>
 	<input type="hidden" name="import_id" value="<?php echo $this->id; ?>" />
 
@@ -1019,7 +1019,7 @@ class WP_Re_Importer extends WP_Importer {
 	function header() {
 		echo '<div class="wrap">';
 		screen_icon();
-		echo '<h2>' . __( 'Import WordPress', 'wpri' ) . '</h2>';
+		echo '<h2>' . __( 'WP Re-Importer', 'wpri' ) . '</h2>';
 
 		$updates = get_plugin_updates();
 		$basename = plugin_basename(__FILE__);
@@ -1041,9 +1041,10 @@ class WP_Re_Importer extends WP_Importer {
 	 */
 	function greet() {
 		echo '<div class="narrow">';
-		echo '<p>'.__( 'Howdy! Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'wpri' ).'</p>';
+		echo '<p>'.__( 'Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the posts, pages, comments, custom fields, categories, and tags into this site.', 'wpri' ).'</p>';
+		echo '<p>'.__( 'If a post or page already exists, a new revision will be created instead of a new post. ', 'wpri' ).'</p>';
 		echo '<p>'.__( 'Choose a WXR (.xml) file to upload, then click Upload file and import.', 'wpri' ).'</p>';
-		wp_import_upload_form( 'admin.php?import=wordpress&amp;step=1' );
+		wp_import_upload_form( 'admin.php?import=wpri&amp;step=1' );
 		echo '</div>';
 	}
 
