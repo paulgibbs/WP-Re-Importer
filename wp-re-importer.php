@@ -51,12 +51,8 @@ require dirname( __FILE__ ) . '/parsers.php';
 
 /**
  * WordPress Importer class for managing the import process of a WXR file
- *
- * @package WordPress
- * @subpackage Importer
  */
-if ( class_exists( 'WP_Importer' ) ) {
-class WP_Import extends WP_Importer {
+class WP_Re_Importer extends WP_Importer {
 	var $max_wxr_version = 1.2; // max. supported WXR version
 
 	var $id; // WXR attachment ID
@@ -103,7 +99,7 @@ class WP_Import extends WP_Importer {
 					$this->import_options();
 				break;
 			case 2:
-				check_admin_referer( 'import-wordpress' );
+				check_admin_referer( 'import-wpri' );
 				$this->fetch_attachments = ( ! empty( $_POST['fetch_attachments'] ) && $this->allow_fetch_attachments() );
 				$this->id = (int) $_POST['import_id'];
 				$file = get_attached_file( $this->id );
@@ -278,7 +274,7 @@ class WP_Import extends WP_Importer {
 		$j = 0;
 ?>
 <form action="<?php echo admin_url( 'admin.php?import=wordpress&amp;step=2' ); ?>" method="post">
-	<?php wp_nonce_field( 'import-wordpress' ); ?>
+	<?php wp_nonce_field( 'import-wpri' ); ?>
 	<input type="hidden" name="import_id" value="<?php echo $this->id; ?>" />
 
 <?php if ( ! empty( $this->authors ) ) : ?>
@@ -1007,7 +1003,7 @@ class WP_Import extends WP_Importer {
 	 * @return array Information gathered from the WXR file
 	 */
 	function parse( $file ) {
-		$parser = new WXR_Parser();
+		$parser = new WPRI_WXR_Parser();
 		return $parser->parse( $file );
 	}
 
@@ -1102,16 +1098,10 @@ class WP_Import extends WP_Importer {
 	}
 }
 
-} // class_exists( 'WP_Importer' )
+function wpri_init() {
+	$GLOBALS['wp_re_importer'] = new WP_Re_Importer();
 
-function wordpress_importer_init() {
 	load_plugin_textdomain( 'wpri', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-
-	/**
-	 * WordPress Importer object for registering the import callback
-	 * @global WP_Import $wp_import
-	 */
-	$GLOBALS['wp_import'] = new WP_Import();
-	register_importer( 'wordpress', 'WordPress', __('Import <strong>posts, pages, comments, custom fields, categories, and tags</strong> from a WordPress export file.', 'wpri'), array( $GLOBALS['wp_import'], 'dispatch' ) );
+	register_importer( 'wpri', 'WP Re-Importer', sprintf( __( 'WP Re-Importer. See %s for details.', 'wpri'), 'http://wordpress.org/extend/plugins/wp-re-importer/' ), array( $GLOBALS['wp_re_importer'], 'dispatch' ) );
 }
-add_action( 'admin_init', 'wordpress_importer_init' );
+add_action( 'admin_init', 'wpri_init' );

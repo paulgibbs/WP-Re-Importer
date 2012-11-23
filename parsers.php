@@ -1,26 +1,23 @@
 <?php
 /**
  * WordPress eXtended RSS file parser implementations
- *
- * @package WordPress
- * @subpackage Importer
  */
 
 /**
  * WordPress Importer class for managing parsing of WXR files.
  */
-class WXR_Parser {
+class WPRI_WXR_Parser {
 	function parse( $file ) {
 		// Attempt to use proper XML parsers first
 		if ( extension_loaded( 'simplexml' ) ) {
-			$parser = new WXR_Parser_SimpleXML;
+			$parser = new WPRI_WXR_Parser_SimpleXML;
 			$result = $parser->parse( $file );
 
 			// If SimpleXML succeeds or this is an invalid WXR file then return the results
 			if ( ! is_wp_error( $result ) || 'SimpleXML_parse_error' != $result->get_error_code() )
 				return $result;
 		} else if ( extension_loaded( 'xml' ) ) {
-			$parser = new WXR_Parser_XML;
+			$parser = new WPRI_WXR_Parser_XML;
 			$result = $parser->parse( $file );
 
 			// If XMLParser succeeds or this is an invalid WXR file then return the results
@@ -44,7 +41,7 @@ class WXR_Parser {
 		}
 
 		// use regular expressions if nothing else available or this is bad XML
-		$parser = new WXR_Parser_Regex;
+		$parser = new WPRI_WXR_Parser_Regex;
 		return $parser->parse( $file );
 	}
 }
@@ -52,7 +49,7 @@ class WXR_Parser {
 /**
  * WXR Parser that makes use of the SimpleXML PHP extension.
  */
-class WXR_Parser_SimpleXML {
+class WPRI_WXR_Parser_SimpleXML {
 	function parse( $file ) {
 		$authors = $posts = $categories = $tags = $terms = array();
 
@@ -223,7 +220,7 @@ class WXR_Parser_SimpleXML {
 /**
  * WXR Parser that makes use of the XML Parser PHP extension.
  */
-class WXR_Parser_XML {
+class WPRI_WXR_Parser_XML {
 	var $wp_tags = array(
 		'wp:post_id', 'wp:post_date', 'wp:post_date_gmt', 'wp:comment_status', 'wp:ping_status', 'wp:attachment_url',
 		'wp:status', 'wp:post_name', 'wp:post_parent', 'wp:menu_order', 'wp:post_type', 'wp:post_password',
@@ -376,7 +373,7 @@ class WXR_Parser_XML {
 /**
  * WXR Parser that uses regular expressions. Fallback for installs without an XML parser.
  */
-class WXR_Parser_Regex {
+class WPRI_WXR_Parser_Regex {
 	var $authors = array();
 	var $posts = array();
 	var $categories = array();
@@ -384,7 +381,7 @@ class WXR_Parser_Regex {
 	var $terms = array();
 	var $base_url = '';
 
-	function WXR_Parser_Regex() {
+	function WPRI_WXR_Parser_Regex() {
 		$this->__construct();
 	}
 
