@@ -1,86 +1,35 @@
-=== WordPress Importer ===
-Contributors: wordpressdotorg
-Donate link: 
+=== WP Re-Importer ===
+Contributors: DJPaul
 Tags: importer, wordpress
-Requires at least: 3.0
-Tested up to: 3.4
-Stable tag: 0.6
+Requires at least: 3.5
+Tested up to: 3.5
+Stable tag: 1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.
+Import content from a WordPress export file. Content that already exist is added as a post revision. Also lets you specify a default parent post.
 
 == Description ==
 
-The WordPress Importer will import the following content from a WordPress export file:
+As a fork of the [standard WordPress Importer plugin (v0.6)](http://wordpress.org/extend/plugins/wordpress-importer/), this importer adds the following features:
 
-* Posts, pages and other custom post types
-* Comments
-* Custom fields and post meta
-* Categories, tags and terms from custom taxonomies
-* Authors
+* Importing content that already exists will add the new version as a post revision
+* A default parent post can be set for content that doesn't have a hierarchy defined in the WordPress export file
 
-For further information and instructions please see the [Codex page on Importing Content](http://codex.wordpress.org/Importing_Content#WordPress)
+If you don't need these features, you should use the [standard WordPress Importer](http://wordpress.org/extend/plugins/wordpress-importer/).
 
 == Installation ==
 
-The quickest method for installing the importer is:
-
-1. Visit Tools -> Import in the WordPress dashboard
-1. Click on the WordPress link in the list of importers
-1. Click "Install Now"
-1. Finally click "Activate Plugin & Run Importer"
-
-If you would prefer to do things manually then follow these instructions:
-
-1. Upload the `wordpress-importer` folder to the `/wp-content/plugins/` directory
+1. Install via WordPress Plugins administration page.
 1. Activate the plugin through the 'Plugins' menu in WordPress
-1. Go to the Tools -> Import screen, click on WordPress
+1. Go to the Tools -> Import screen, click on 'WordPress Re-Importer'
 
 == Changelog ==
 
-= 0.6 =
-* Support for WXR 1.2 and multiple CDATA sections
-* Post aren't duplicates if their post_type's are different
-
-= 0.5.2 =
-* Double check that the uploaded export file exists before processing it. This prevents incorrect error messages when
-an export file is uploaded to a server with bad permissions and WordPress 3.3 or 3.3.1 is being used.
-
-= 0.5 =
-* Import comment meta (requires export from WordPress 3.2)
-* Minor bugfixes and enhancements
-
-= 0.4 =
-* Map comment user_id where possible
-* Import attachments from `wp:attachment_url`
-* Upload attachments to correct directory
-* Remap resized image URLs correctly
-
-= 0.3 =
-* Use an XML Parser if possible
-* Proper import support for nav menus
-* ... and much more, see [Trac ticket #15197](http://core.trac.wordpress.org/ticket/15197)
-
-= 0.1 =
-* Initial release
-
-== Upgrade Notice ==
-
-= 0.6 =
-Support for exports from WordPress 3.4.
-
-= 0.5.2 =
-Fix incorrect error message when the export file could not be uploaded.
-
-= 0.5 =
-Import comment meta and other minor bugfixes and enhancements.
-
-= 0.4 =
-Bug fixes for attachment importing and other small enhancements.
-
-= 0.3 =
-Upgrade for a more robust and reliable experience when importing WordPress export files, and for compatibility with WordPress 3.1.
+= 1.0 =
+* First version. Forked from version 0.6 of the WordPress Importer plugin.
+* Importing content that already exists will add the new version as a post revision
+* A default parent post can be set for content that doesn't have a hierarchy defined in the WordPress export file
 
 == Frequently Asked Questions ==
 
