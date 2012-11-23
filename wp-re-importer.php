@@ -558,74 +558,81 @@ class WP_Re_Importer extends WP_Importer {
 
 			$post_type_object = get_post_type_object( $post['post_type'] );
 
+			// If the post exists, we'll create a post revision later instead of a whole new post
 			$post_exists = post_exists( $post['post_title'], '', $post['post_date'] );
-			if ( $post_exists && get_post_type( $post_exists ) == $post['post_type'] ) {
-				printf( __('%s &#8220;%s&#8221; already exists.', 'wpri'), $post_type_object->labels->singular_name, esc_html($post['post_title']) );
-				echo '<br />';
-				$comment_post_ID = $post_id = $post_exists;
-			} else {
-				$post_parent = (int) $post['post_parent'];
-				if ( $post_parent ) {
-					// if we already know the parent, map it to the new local ID
-					if ( isset( $this->processed_posts[$post_parent] ) ) {
-						$post_parent = $this->processed_posts[$post_parent];
-					// otherwise record the parent for later
-					} else {
-						$this->post_orphans[intval($post['post_id'])] = $post_parent;
-						$post_parent = 0;
+			if ( $post_exists && get_post_type( $post_exists ) != $post['post_type'] )
+				$post_exists = 0;
+
+			$post_parent = (int) $post['post_parent'];
+			if ( $post_parent ) {
+				// if we already know the parent, map it to the new local ID
+				if ( isset( $this->processed_posts[$post_parent] ) ) {
+					$post_parent = $this->processed_posts[$post_parent];
+				// otherwise record the parent for later
+				} else {
+					$this->post_orphans[intval($post['post_id'])] = $post_parent;
+					$post_parent = 0;
+				}
+			}
+
+			// map the post author
+			$author = sanitize_user( $post['post_author'], true );
+			if ( isset( $this->author_mapping[$author] ) )
+				$author = $this->author_mapping[$author];
+			else
+				$author = (int) get_current_user_id();
+
+			$postdata = array(
+				'import_id' => $post['post_id'], 'post_author' => $author, 'post_date' => $post['post_date'],
+				'post_date_gmt' => $post['post_date_gmt'], 'post_content' => $post['post_content'],
+				'post_excerpt' => $post['post_excerpt'], 'post_title' => $post['post_title'],
+				'post_status' => $post['status'], 'post_name' => $post['post_name'],
+				'comment_status' => $post['comment_status'], 'ping_status' => $post['ping_status'],
+				'guid' => $post['guid'], 'post_parent' => $post_parent, 'menu_order' => $post['menu_order'],
+				'post_type' => $post['post_type'], 'post_password' => $post['post_password']
+			);
+
+			if ( 'attachment' == $postdata['post_type'] ) {
+				$remote_url = ! empty($post['attachment_url']) ? $post['attachment_url'] : $post['guid'];
+
+				// try to use _wp_attached file for upload folder placement to ensure the same location as the export site
+				// e.g. location is 2003/05/image.jpg but the attachment post_date is 2010/09, see media_handle_upload()
+				$postdata['upload_date'] = $post['post_date'];
+				if ( isset( $post['postmeta'] ) ) {
+					foreach( $post['postmeta'] as $meta ) {
+						if ( $meta['key'] == '_wp_attached_file' ) {
+							if ( preg_match( '%^[0-9]{4}/[0-9]{2}%', $meta['value'], $matches ) )
+								$postdata['upload_date'] = $matches[0];
+							break;
+						}
 					}
 				}
 
-				// map the post author
-				$author = sanitize_user( $post['post_author'], true );
-				if ( isset( $this->author_mapping[$author] ) )
-					$author = $this->author_mapping[$author];
-				else
-					$author = (int) get_current_user_id();
+				$comment_post_ID = $post_id = $this->process_attachment( $postdata, $remote_url );
 
-				$postdata = array(
-					'import_id' => $post['post_id'], 'post_author' => $author, 'post_date' => $post['post_date'],
-					'post_date_gmt' => $post['post_date_gmt'], 'post_content' => $post['post_content'],
-					'post_excerpt' => $post['post_excerpt'], 'post_title' => $post['post_title'],
-					'post_status' => $post['status'], 'post_name' => $post['post_name'],
-					'comment_status' => $post['comment_status'], 'ping_status' => $post['ping_status'],
-					'guid' => $post['guid'], 'post_parent' => $post_parent, 'menu_order' => $post['menu_order'],
-					'post_type' => $post['post_type'], 'post_password' => $post['post_password']
-				);
+			} else {
 
-				if ( 'attachment' == $postdata['post_type'] ) {
-					$remote_url = ! empty($post['attachment_url']) ? $post['attachment_url'] : $post['guid'];
+				// If the post already exists in the DB, we'll add this post as as a revision
+				if ( $post_exists ) {
+					$postdata['ID']  = $post_exists;
+ 					$comment_post_ID = $post_id = wp_update_post( $postdata );
 
-					// try to use _wp_attached file for upload folder placement to ensure the same location as the export site
-					// e.g. location is 2003/05/image.jpg but the attachment post_date is 2010/09, see media_handle_upload()
-					$postdata['upload_date'] = $post['post_date'];
-					if ( isset( $post['postmeta'] ) ) {
-						foreach( $post['postmeta'] as $meta ) {
-							if ( $meta['key'] == '_wp_attached_file' ) {
-								if ( preg_match( '%^[0-9]{4}/[0-9]{2}%', $meta['value'], $matches ) )
-									$postdata['upload_date'] = $matches[0];
-								break;
-							}
-						}
-					}
-
-					$comment_post_ID = $post_id = $this->process_attachment( $postdata, $remote_url );
 				} else {
 					$comment_post_ID = $post_id = wp_insert_post( $postdata, true );
 				}
-
-				if ( is_wp_error( $post_id ) ) {
-					printf( __( 'Failed to import %s &#8220;%s&#8221;', 'wpri' ),
-						$post_type_object->labels->singular_name, esc_html($post['post_title']) );
-					if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
-						echo ': ' . $post_id->get_error_message();
-					echo '<br />';
-					continue;
-				}
-
-				if ( $post['is_sticky'] == 1 )
-					stick_post( $post_id );
 			}
+
+			if ( is_wp_error( $post_id ) ) {
+				printf( __( 'Failed to import %s &#8220;%s&#8221;', 'wpri' ),
+					$post_type_object->labels->singular_name, esc_html($post['post_title']) );
+				if ( defined('IMPORT_DEBUG') && IMPORT_DEBUG )
+					echo ': ' . $post_id->get_error_message();
+				echo '<br />';
+				continue;
+			}
+
+			if ( $post['is_sticky'] == 1 )
+				stick_post( $post_id );
 
 			// map pre-import ID to local ID
 			$this->processed_posts[intval($post['post_id'])] = (int) $post_id;
