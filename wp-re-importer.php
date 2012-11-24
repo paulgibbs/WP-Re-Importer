@@ -573,7 +573,11 @@ class WP_Re_Importer extends WP_Importer {
 			$post_type_object = get_post_type_object( $post['post_type'] );
 
 			// If the post exists, we'll create a post revision later instead of a whole new post
-			$post_exists = get_page_by_title( $post['post_title'], OBJECT, $post['post_type'] );	
+			if ( ! empty( $post['post_name'] ) )
+				$post_exists = WP_Re_Importer::get_page_by_name( $post['post_name'], OBJECT, $post['post_type'] );	
+			else
+				$post_exists = get_page_by_title( $post['post_title'], OBJECT, $post['post_type'] );
+
 			$post_exists = ! empty( $post_exists ) ? $post_exists->ID : 0;
 
 			$post_parent = (int) $post['post_parent'];
@@ -1125,6 +1129,25 @@ class WP_Re_Importer extends WP_Importer {
 	function cmpr_strlen( $a, $b ) {
 		return strlen($b) - strlen($a);
 	}
+
+
+	/**
+	 * Retrieve a page given its name.
+	 *
+	 * @param string $page_name Page title
+	 * @param string $output Optional. Output type. OBJECT, ARRAY_N, or ARRAY_A. Default OBJECT.
+	 * @param string $post_type Optional. Post type. Default page.
+	 * @return WP_Post|null WP_Post on success or null on failure
+	 */
+	public static function get_page_by_name($page_name, $output = OBJECT, $post_type = 'page' ) {
+		global $wpdb;
+		$page = $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM $wpdb->posts WHERE post_name = %s AND post_type= %s", $page_name, $post_type ) );
+		if ( $page )
+			return get_post( $page, $output );
+
+		return null;
+	}
+
 }
 
 function wpri_init() {
