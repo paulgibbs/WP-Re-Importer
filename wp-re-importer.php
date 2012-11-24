@@ -995,6 +995,36 @@ class WP_Re_Importer extends WP_Importer {
 			if ( $local_child_id && $local_parent_id )
 				update_post_meta( $local_child_id, '_menu_item_menu_item_parent', (int) $local_parent_id );
 		}
+
+		/**
+		 * Re-Importer looks for "_ptw_class" meta on posts we've imported, and uses the value to find a
+		 * post with the same title to set as its parent. We only do this on posts that do not have a
+		 * parent post set already.
+		 *
+		 * The goal of this is to allow page parents to be set that for imported posts, of which the parents
+		 * themselves don't exist in the import data.
+		 */
+		$posts = get_posts( array(
+			'meta_key'    => '_ptw_class',
+			'numberposts' => -1,
+			'post_parent' => 0,
+			'post_type'   => 'any',
+		) );
+
+		foreach	( $posts as $post ) {
+			$ptw_post_name = get_post_meta( $post->ID, '_ptw_class', true );
+			$parent_post   = get_page_by_title( $ptw_post_name, OBJECT, $post->post_type );
+
+			// If we've found the parent, update the current post's parent and tidy up.
+			if ( ! empty( $parent_post ) ) {
+				wp_update_post( array(
+					'ID'          => $post->ID,
+					'parent_post' => $parent_post->ID,
+				) );
+
+				delete_post_meta( $post->ID, '_ptw_class' );
+			}
+		}
 	}
 
 	/**
