@@ -1007,7 +1007,6 @@ class WP_Re_Importer extends WP_Importer {
 		$posts = get_posts( array(
 			'meta_key'    => '_ptw_class',
 			'numberposts' => -1,
-			'post_parent' => 0,
 			'post_type'   => 'any',
 		) );
 
