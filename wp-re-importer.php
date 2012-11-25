@@ -1015,12 +1015,8 @@ class WP_Re_Importer extends WP_Importer {
 			$parent_post   = get_page_by_title( $ptw_post_name, OBJECT, $post->post_type );
 
 			// If we've found the parent, update the current post's parent and tidy up.
-			if ( ! empty( $parent_post ) ) {
-				wp_update_post( array(
-					'ID'          => $post->ID,
-					'post_parent' => $parent_post->ID,
-				) );
-			}
+			if ( ! empty( $parent_post ) )
+				$wpdb->update( $wpdb->posts, array( 'post_parent' => $parent_post->ID ), array( 'ID' => $post->ID ), '%d', '%d' );
 		}
 	}
 
