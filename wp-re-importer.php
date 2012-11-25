@@ -751,7 +751,7 @@ class WP_Re_Importer extends WP_Importer {
 						if ( ! $value )
 							$value = maybe_unserialize( $meta['value'] );
 
-						add_post_meta( $post_id, $key, $value );
+						update_post_meta( $post_id, $key, $value );
 						do_action( 'import_post_meta', $post_id, $key, $value );
 
 						// if the post has a featured image, take note of this in case of remap
