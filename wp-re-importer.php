@@ -1020,8 +1020,6 @@ class WP_Re_Importer extends WP_Importer {
 					'ID'          => $post->ID,
 					'post_parent' => $parent_post->ID,
 				) );
-
-				delete_post_meta( $post->ID, '_ptw_class' );
 			}
 		}
 	}
