@@ -1018,7 +1018,7 @@ class WP_Re_Importer extends WP_Importer {
 			if ( ! empty( $parent_post ) ) {
 				wp_update_post( array(
 					'ID'          => $post->ID,
-					'parent_post' => $parent_post->ID,
+					'post_parent' => $parent_post->ID,
 				) );
 
 				delete_post_meta( $post->ID, '_ptw_class' );
