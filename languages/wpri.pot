@@ -2,9 +2,9 @@
 # This file is distributed under the same license as the WP Re-Importer package.
 msgid ""
 msgstr ""
-"Project-Id-Version: WP Re-Importer 1.0\n"
+"Project-Id-Version: WP Re-Importer 1.1\n"
 "Report-Msgid-Bugs-To: http://wordpress.org/tag/wp-re-importer\n"
-"POT-Creation-Date: 2012-11-23 14:35:32+00:00\n"
+"POT-Creation-Date: 2012-11-26 11:17:54+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -145,7 +145,7 @@ msgstr ""
 msgid "Failed to import post tag %s"
 msgstr ""
 
-#: wp-re-importer.php:534 wp-re-importer.php:670
+#: wp-re-importer.php:534 wp-re-importer.php:678
 msgid "Failed to import %s %s"
 msgstr ""
 
@@ -153,75 +153,75 @@ msgstr ""
 msgid "Failed to import &#8220;%s&#8221;: Invalid post type %s"
 msgstr ""
 
-#: wp-re-importer.php:643
+#: wp-re-importer.php:651
 msgid "Failed to import %s &#8220;%s&#8221;"
 msgstr ""
 
-#: wp-re-importer.php:788
+#: wp-re-importer.php:796
 msgid "Menu item skipped due to missing menu slug"
 msgstr ""
 
-#: wp-re-importer.php:795
+#: wp-re-importer.php:803
 msgid "Menu item skipped due to invalid menu slug: %s"
 msgstr ""
 
-#: wp-re-importer.php:858
+#: wp-re-importer.php:866
 msgid "Fetching attachments is not enabled"
 msgstr ""
 
-#: wp-re-importer.php:871
+#: wp-re-importer.php:879
 msgid "Invalid file type"
 msgstr ""
 
-#: wp-re-importer.php:915
+#: wp-re-importer.php:923
 msgid "Remote server did not respond"
 msgstr ""
 
-#: wp-re-importer.php:921
+#: wp-re-importer.php:929
 msgid "Remote server returned error response %1$d %2$s"
 msgstr ""
 
-#: wp-re-importer.php:928
+#: wp-re-importer.php:936
 msgid "Remote file is incorrect size"
 msgstr ""
 
-#: wp-re-importer.php:933
+#: wp-re-importer.php:941
 msgid "Zero size file downloaded"
 msgstr ""
 
-#: wp-re-importer.php:939
+#: wp-re-importer.php:947
 msgid "Remote file is too large, limit is %s"
 msgstr ""
 
-#. #-#-#-#-#  wp-re-importer.pot (WP Re-Importer 1.0)  #-#-#-#-#
+#. #-#-#-#-#  wp-re-importer.pot (WP Re-Importer 1.1)  #-#-#-#-#
 #. Plugin Name of the plugin/theme
-#: wp-re-importer.php:1038
+#: wp-re-importer.php:1066
 msgid "WP Re-Importer"
 msgstr ""
 
-#: wp-re-importer.php:1045
+#: wp-re-importer.php:1073
 msgid ""
 "A new version of this importer is available. Please update to version %s to "
 "ensure compatibility with newer export files."
 msgstr ""
 
-#: wp-re-importer.php:1060
+#: wp-re-importer.php:1088
 msgid ""
 "Upload your WordPress eXtended RSS (WXR) file and we&#8217;ll import the "
 "posts, pages, comments, custom fields, categories, and tags into this site."
 msgstr ""
 
-#: wp-re-importer.php:1061
+#: wp-re-importer.php:1089
 msgid ""
 "If the import tries to create a post or page which already exists, it will "
 "be created as a new revision rather than a new post. "
 msgstr ""
 
-#: wp-re-importer.php:1062
+#: wp-re-importer.php:1090
 msgid "Choose a WXR (.xml) file to upload, then click Upload file and import."
 msgstr ""
 
-#: wp-re-importer.php:1130
+#: wp-re-importer.php:1177
 msgid "WP Re-Importer. See %s for details."
 msgstr ""
 
@@ -231,7 +231,7 @@ msgstr ""
 
 #. Description of the plugin/theme
 msgid ""
-"Import content from a WordPress export file. Content that already exist is "
+"Import content from a WordPress export file. Content that already exists is "
 "added as a post revision. Also lets you specify a default parent post."
 msgstr ""
 

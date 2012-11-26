@@ -3,7 +3,7 @@
 Plugin Name: WP Re-Importer
 Plugin URI: http://wordpress.org/extend/plugins/wp-re-importer/
 Description: Import content from a WordPress export file. Content that already exists is added as a post revision. Also lets you specify a default parent post.
-Version: 1.0
+Version: 1.1
 Requires at least: 3.5
 Tested up to: 3.5
 License: GPLv2 or later
@@ -998,11 +998,8 @@ class WP_Re_Importer extends WP_Importer {
 
 		/**
 		 * Re-Importer looks for "_ptw_class" meta on posts we've imported, and uses the value to find a
-		 * post with the same title to set as its parent. We only do this on posts that do not have a
-		 * parent post set already.
-		 *
-		 * The goal of this is to allow page parents to be set that for imported posts, of which the parents
-		 * themselves don't exist in the import data.
+		 * post with the same title to set as its parent. The goal of this is to allow page parents to
+		 * be set that for imported posts, of which the parents themselves don't exist in the import data.
 		 */
 		$posts = get_posts( array(
 			'meta_key'    => '_ptw_class',

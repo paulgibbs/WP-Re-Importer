@@ -3,9 +3,10 @@ Contributors: DJPaul
 Tags: importer, wordpress
 Requires at least: 3.5
 Tested up to: 3.5
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=P3K7Z7NHWZ5CL&lc=GB&item_name=B%2eY%2eO%2eT%2eO%2eS%20%2d%20BuddyPress%20plugins&currency_code=GBP&bn=PP%2dDon
 
 Import content from a WordPress export file. Content that already exists is added as a post revision. Also lets you specify a default parent post.
 
@@ -26,12 +27,27 @@ If you don't need these features, you should use the [standard WordPress Importe
 
 == Changelog ==
 
+= 1.1 =
+* Checks for existing posts during import now compares the post name rather than post title.
+* Fix post meta being duplicated on multiple imports.
+* Allow imported posts' post_parent to be set to a post not in the import (e.g. an existing post).
+
 = 1.0 =
 * First version. Forked from version 0.6 of the WordPress Importer plugin.
-* Importing content that already exists will add the new version as a post revision
-* A default parent post can be set for content that doesn't have a hierarchy defined in the WordPress export file
+* Importing content that already exists will add the new version as a post revision.
+* A default parent post can be set for content that doesn't have a hierarchy defined in the WordPress export file.
+
+== Upgrade Notice ==
+
+= 1.1 =
+Makes re-imports more robust, and prevents duplicate post meta being created.
 
 == Frequently Asked Questions ==
+
+= Setting imported posts' post_parent to existing posts =
+The standard WordPress Importer only sets a post's post_parent if that post also exists in the import; it can't map an imported post to a post that already exists in the database.
+
+Re-Importer looks in the import XML for meta with key = "_ptw_class"; the value must be a post title. We set the imported post's post_parent to be the post ID of an existing post with this same title.
 
 = Help! I'm getting out of memory errors or a blank screen. =
 If your exported file is very large, the import script may run into your host's configured memory limit for PHP.
